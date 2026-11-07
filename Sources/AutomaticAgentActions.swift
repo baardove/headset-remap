@@ -13,3 +13,13 @@ enum AutomaticAgentActions {
         step(0)
     }
 }
+
+/// Main-thread cancellation token shared by pending primary and secondary actions.
+final class ActionGeneration {
+    private var value: UInt = 0
+    func cancel() { value &+= 1 }
+    func checkpoint() -> () -> Bool {
+        let expected = value
+        return { [weak self] in self?.value == expected }
+    }
+}

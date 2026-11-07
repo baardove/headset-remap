@@ -2,6 +2,7 @@ import Cocoa
 
 /// Only Jabra USB HID interfaces are captured. No system keyboard hook is used.
 final class InputDebugWindow: NSWindowController {
+    var onActionsPaused: (() -> Void)?
     var statusProvider: (() -> String)?
     private let status = NSTextField(wrappingLabelWithString: "")
     private let actions = NSButton(checkboxWithTitle: "Run mapped actions", target: nil, action: nil)
@@ -82,6 +83,7 @@ final class InputDebugWindow: NSWindowController {
     }
     @objc private func toggleActions() {
         AppConfig.inputMode.actionsEnabled = actions.state == .on
+        if !AppConfig.inputMode.actionsEnabled { onActionsPaused?() }
         AppLog.log(AppConfig.inputMode.actionsEnabled ? "--- mapped actions enabled ---" : "--- mapped actions paused; input logging unchanged ---")
     }
     @objc private func clearLog() { lines.removeAll(); pending.removeAll(); textView.string = "" }

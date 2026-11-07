@@ -262,6 +262,7 @@ struct ButtonProfileLibrary: Codable, Equatable {
     mutating func removeSecondaryAction(_ id: UUID, in profileID: UUID) throws {
         guard let index = profiles.firstIndex(where: { $0.id == profileID }) else { throw ProfileError.missing }
         profiles[index].secondaryActions?.removeAll { $0.id == id }
+        if profiles[index].automaticActionSelection == id.uuidString { profiles[index].automaticActionSelection = "none" }
         let removed = AgentActionReference(profileID: profileID, actionID: id).encoded
         for profileIndex in profiles.indices {
             profiles[profileIndex].additionalButtons = profiles[profileIndex].additionalButtons?.map { button in

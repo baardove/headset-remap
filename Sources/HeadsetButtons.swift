@@ -34,7 +34,7 @@ struct HeadsetButtonRouter {
         var matches: [HeadsetButton] = []
         for button in buttons {
             guard let binding = button.settings.learnedSignals.first(where: { signal.sameElement(as: $0) }) else { continue }
-            let key = "\(button.id):\(signal.productID)"
+            let key = "\(button.id):\(signal.productID):\(device)"
             var trigger = triggers[key] ?? ButtonTrigger()
             if trigger.consume(signal, device: device, binding: binding, now: now) { matches.append(button) }
             triggers[key] = trigger

@@ -317,7 +317,8 @@ final class JabraButtonListener {
         ConnectedHeadset(
             productID: (IOHIDDeviceGetProperty(device, kIOHIDProductIDKey as CFString) as? NSNumber)?.intValue ?? 0,
             locationID: (IOHIDDeviceGetProperty(device, kIOHIDLocationIDKey as CFString) as? NSNumber)?.intValue ?? 0,
-            name: IOHIDDeviceGetProperty(device, kIOHIDProductKey as CFString) as? String ?? "Jabra headset")
+            name: IOHIDDeviceGetProperty(device, kIOHIDProductKey as CFString) as? String ?? "Jabra headset",
+            serialNumber: IOHIDDeviceGetProperty(device, kIOHIDSerialNumberKey as CFString) as? String)
     }
     var detectedDevices: [ConnectedHeadset] {
         var seen = Set<String>()
@@ -778,8 +779,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var agentsWindow: AgentsWindow?
     private var buttonsWindow: ButtonsWindow?
     private var debugWindow: InputDebugWindow?
+    private let actionGeneration = ActionGeneration()
     private var pendingActions: [String: Timer] = [:]
-    private func cancelPendingActions() { pendingActions.values.forEach { $0.invalidate() }; pendingActions.removeAll() }
+    private func cancelPendingActions() { actionGeneration.cancel(); pendingActions.values.forEach { $0.invalidate() }; pendingActions.removeAll() }
     private var lastMuted: Bool?
     private var ledSyncedMuted: Bool?
     private var retryTimer: Timer?
@@ -807,6 +809,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
         AppLog.log("--- app launched; input logging and mapped actions are independent ---")
         buildStatusItem()
+        audioActivity.selectionProvider = { [weak self] in
+            guard let self else { return (false, nil) }
+            let id = self.jabra.inputSelection.deviceID
+            return (id != nil, self.jabra.detectedDevices.first { $0.id == id })
+        }
         audioActivity.start()
         hotkeys.onTrigger = { [weak self] binding in
             guard let self else { return }
@@ -836,12 +843,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             forName: .jabraDevicesChanged, object: nil, queue: .main
         ) { [weak self] _ in
             self?.cancelPendingActions()
+            self?.audioActivity.refreshSelection()
             self?.ledSyncedMuted = nil // re-sync LED on (re)connect
             self?.refreshUI()
         }
 
         let workspace = NSWorkspace.shared.notificationCenter
         workspace.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.cancelPendingActions()
             self?.jabra.prepareForSleep()
         }
         workspace.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
@@ -1129,7 +1138,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func showAbout() {
-        let credits = NSMutableAttributedString(string: "Original project: Saif Hassan (saiftheboss7)\nAI-assisted development: OpenAI Codex\nLicense: GNU AGPL v3\n\n")
+        let credits = NSMutableAttributedString(string: "Original project: Saif Hassan (saiftheboss7)\nBård Ove Myhr\nAI-assisted development: OpenAI Codex\nLicense: GNU AGPL v3\n\n")
         credits.append(NSAttributedString(string: "Read the README on GitHub", attributes: [.link: URL(string: "https://github.com/baardove/headset-remap/blob/main/README.md")!]))
         NSApp.activate(ignoringOtherApps: true)
         NSApp.orderFrontStandardAboutPanel(options: [.applicationName: "Headset Remap", .credits: credits])
@@ -1193,7 +1202,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
               let action = profile.secondaryActions?.first(where: { $0.id == actionID }) else { completion("This agent action is unavailable or disabled."); return }
         executeSecondary(action, profile: profile, completion: completion)
     }
-    private func executeSecondary(_ action: AgentSecondaryAction, profile: ButtonProfile, completion: @escaping (String?) -> Void) {
+    private func executeSecondary(_ action: AgentSecondaryAction, profile: ButtonProfile, isCurrent: @escaping () -> Bool = { true }, completion: @escaping (String?) -> Void) {
         let key = AgentActionReference(profileID: profile.id, actionID: action.id).encoded
         guard !secondaryInFlight.contains(key) else { completion("That action is already running."); return }
         if action.kind == .keyboard, let stroke = action.key, profileLibrary.hotkeys.contains(where: { $0.shortcut == stroke }) {
@@ -1201,7 +1210,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         secondaryInFlight.insert(key)
         AppLog.log("AGENT ACTION started: \(profile.name) · \(action.name)")
-        AgentActionExecutor.run(action, profile: profile) { [weak self] error in
+        let currentGeneration = actionGeneration.checkpoint()
+        AgentActionExecutor.run(action, profile: profile, isCurrent: { currentGeneration() && isCurrent() }) { [weak self] error in
             self?.secondaryInFlight.remove(key)
             AppLog.log(error.map { "AGENT ACTION failed: \($0)" } ?? "AGENT ACTION completed: \(action.name)")
             completion(error)
@@ -1352,8 +1362,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let settings = button.settings
         let profileID = profileLibrary.activeID
         let headsetSelection = jabra.inputSelection
+        let currentGeneration = actionGeneration.checkpoint()
         let run = { [weak self] in
-            guard let self, self.profileLibrary.activeID == profileID,
+            guard let self, currentGeneration(), self.profileLibrary.activeID == profileID,
                   self.jabra.inputSelection == headsetSelection,
                   self.profileLibrary.active.resolvedButtons.first(where: { $0.id == button.id })?.settings == settings,
                   AppConfig.inputMode.dispatchesActions(isLearning: self.jabra.isLearning) else { return }
@@ -1366,11 +1377,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 if let error { AppLog.log("ACTION failed: \(error)") }
                 else {
                     AppLog.log("ACTION completed: target accepted the request")
-                    guard let profile = self.profileLibrary.profiles.first(where: { $0.id == profileID }),
+                    guard currentGeneration(), let profile = self.profileLibrary.profiles.first(where: { $0.id == profileID }),
                           settings.action == profile.settings.action, settings.target == profile.settings.target else { return }
                     AutomaticAgentActions.run(profile.automaticActions, perform: { action, next in
                         guard self.profileLibrary.activeID == profileID, self.jabra.inputSelection == headsetSelection, AppConfig.inputMode.dispatchesActions(isLearning: self.jabra.isLearning) else { next("Agent or headset changed; remaining actions canceled."); return }
-                        self.executeSecondary(action, profile: profile, completion: next)
+                        self.executeSecondary(action, profile: profile, isCurrent: { currentGeneration() && AppConfig.inputMode.dispatchesActions(isLearning: self.jabra.isLearning) }, completion: next)
                     }, completion: { error in
                         if let error { AppLog.log("AUTOMATIC ACTIONS stopped: \(error)") }
                         else { AppLog.log("AUTOMATIC ACTIONS completed") }
@@ -1387,6 +1398,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func openDebugInput() {
         if debugWindow == nil {
             debugWindow = InputDebugWindow()
+            debugWindow?.onActionsPaused = { [weak self] in self?.cancelPendingActions() }
             debugWindow?.statusProvider = { [weak self] in
                 guard let self else { return "" }
                 let age = self.jabra.lastInputAt.map { "\(Int(Date().timeIntervalSince($0)))s ago" } ?? "none yet"

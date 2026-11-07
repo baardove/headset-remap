@@ -1,6 +1,6 @@
 # Code review — 7 November 2026
 
-Review covers HID routing, selected device handling, settings/migrations, action execution, voice state detection, permissions, lifecycle, UI save paths, and publication changes. Findings below are not fixed in this documentation/credit update.
+Review covers HID routing, selected device handling, settings/migrations, action execution, voice state detection, permissions, lifecycle, UI save paths, and publication changes. The findings below record the initial review. The subsequent user-authorized fixes are described under Resolution; live installation remains deferred.
 
 ## Findings
 
@@ -23,3 +23,14 @@ The Grok Bot installation identifies as `com.anysphere.sand`. Its bundled render
 - Earlier actual hardware evidence: Evolve2 65 / Link 380 opened Codex with Voice Chat; Evolve3 75 / Link 390 reported Teams input and opened Codex with standalone mode.
 - No new physical button, voice-start/stop, permission, sleep/wake, or two-adapter playback tests were performed during the active call. Existing five Carbon and five voice-label test results do not prove live voice operation.
 - About uses the native standard panel; new visual acceptance and installation remain deferred until after the call.
+
+## Resolution
+
+All three findings and the stale deleted-action selection are fixed in the follow-up source update:
+
+- A shared cancellation generation invalidates pending primary/secondary work on configuration, device, learning and sleep transitions. The executor checks it after its delay and after opening an app, before dispatching any secondary action. Headset actions also recheck the mapped-actions pause state.
+- Audio conditions use the selected adapter's USB model and serial identity. Unknown/disconnected identity fails closed; All connected headsets retains aggregate behavior. The quiet-state gate resets when device selection changes.
+- Debounce keys include physical location, preserving suppression across duplicate interfaces on the same adapter while separating same-model adapters.
+- Deleting the selected secondary action explicitly selects None.
+
+Validation: 214 portable checks and six real-executor cancellation checks with a fake external launch boundary pass. The tests do not open apps, send shortcuts, change preferences, or interact with the active call. Hardware playback across two adapters, additional physical buttons, and the new About panel still need later live acceptance.

@@ -23,6 +23,7 @@ These results apply to the tested devices and firmware, not the entire Evolve2 o
 Based on [Saif Hassan (saiftheboss7)'s original Jabra mute-button remapper](https://github.com/saiftheboss7/jabra-evolve-mute-button-remapper-macos).
 
 - Original creator: [Saif Hassan (saiftheboss7)](https://github.com/saiftheboss7)
+- **Bård Ove Myhr**
 - AI-assisted development: **OpenAI Codex**
 
 Distributed under the [GNU Affero General Public License v3](LICENSE). Upstream license and provenance are preserved. Right-click the menu-bar icon and choose **About Headset Remap** for credits and a link to this README.
@@ -216,10 +217,23 @@ Upstream commit at download: `0dac819`. See [upstream documentation](https://git
 
 In **Agents & actions**, use the **Secondary action** dropdown to choose **None**, one configured secondary action, or **All checked secondary actions, in order**. Save the agent. The selection applies to physical headset activation; manual Open remains a plain launch.
 
-For Codex configurations that include Voice, the headset trigger first looks for the installed app's accessible End Voice/Stop voice chat control. When present, it presses that control and skips the launch/action chain. This detects the app's exposed voice state, not merely a remembered last click. Accessibility permission is required. Other agents do not yet have this Codex-specific voice-state detector.
+For Codex configurations that include Voice, the headset trigger first looks for the installed app's accessible End Voice/Stop voice chat control. When present, it presses that control and skips the launch/action chain. This detects the app's exposed voice state, not merely a remembered last click. Accessibility permission is required. Other agents do not yet have this Codex-specific voice-state detector. Grok Bot exposes a voice-call control, but no supported external voice-start command has been verified; no automatic Grok voice preset is included.
 
 ### Screenshot action presets and stacks
 
 Codex includes Open your dot, New chat, New temporary chat, New standalone chat, Open side chat, Voice Chat, End Voice Chat, Toggle Voice Chat microphone, and Toggle Voice Chat audio. The supplied screenshot bindings are used, including Command+Period for your dot and Control+Command+V for Voice Chat. Newly added presets are unchecked, so they do not all fire at once.
 
 Choose **All checked secondary actions, in order** in the agent’s **Secondary action** dropdown. In **Edit secondary actions…**, check the steps to include and move them into order with the arrows. For example, check **Open your dot** and **Voice Chat**, leaving the chat-creation and voice-ending actions unchecked. Each step’s delay controls the wait before it runs. Selecting a single action or None remains available.
+
+## Other headset buttons and audio rules
+
+The button editor already supports learning mute, play/pause, volume up/down, call/answer, voice assistant, microphone arm and custom slots. A slot name does not establish hardware support: learn and test a separately reported HID input before assigning an action. Only the Teams-button behavior described above has been physically verified for these two headset/adapter pairs. The boom arm remains unassigned; it may share a mute input or expose no usable independent event.
+
+Learning additional inputs does not suppress the headset's native volume, call or media behavior. Legacy mute/Music control is opt-in. Selecting one adapter also scopes audio conditions to that adapter's CoreAudio identity; if it cannot be identified, audio-dependent actions stay inactive rather than using another headset's state.
+
+Delayed-action regression checks (fake launch boundary; no shortcuts or apps are fired):
+
+```sh
+swiftc Sources/ButtonMapping.swift Sources/ButtonProfiles.swift Sources/HeadsetButtons.swift Sources/HeadsetDevices.swift Sources/AudioActivityRules.swift Sources/AgentSecondaryAction.swift Sources/AgentActionPresets.swift Sources/AutomaticAgentActions.swift Sources/KeyboardShortcut.swift Sources/AgentActionExecutor.swift Tests/Actions/main.swift -o /tmp/jabra-action-tests
+/tmp/jabra-action-tests
+```

@@ -7,6 +7,8 @@ final class AudioActivityMonitor {
     private var gate = AudioActivityGate()
     private(set) var detail = "Checking headset audio…"
     var state: HeadsetAudioState { gate.state }
+    var selectionProvider: (() -> (required: Bool, device: ConnectedHeadset?))?
+    func refreshSelection() { gate = AudioActivityGate(); sample() }
     var onChange: (() -> Void)?
     var status: String {
         switch state {
@@ -23,22 +25,30 @@ final class AudioActivityMonitor {
     func stop() { timer?.invalidate(); timer = nil }
     private func sample() {
         let old = state
-        let probe = Self.probe()
+        let selection = selectionProvider?() ?? (false, nil)
+        let probe = Self.probe(selectionRequired: selection.0, selected: selection.1)
         detail = probe.1
         gate.update(probe.0, now: ProcessInfo.processInfo.systemUptime)
         if old != state { onChange?() }
     }
-    static func probe() -> (HeadsetAudioState, String) {
+    static func probe(selectionRequired: Bool = false, selected: ConnectedHeadset? = nil) -> (HeadsetAudioState, String) {
         guard #available(macOS 14.2, *) else { return (.unknown, "Audio rules require macOS 14.2 or newer") }
         let system = AudioObjectID(kAudioObjectSystemObject)
         guard let devices = ids(system, selector: kAudioHardwarePropertyDevices),
               let processes = ids(system, selector: kAudioHardwarePropertyProcessObjectList) else {
             return (.unknown, "Audio activity unavailable")
         }
+        if selectionRequired && selected == nil { return (.unknown, "Selected headset disconnected") }
+        var unmatchedIdentity = false
         let headsetIDs = Set(devices.filter { device in
             guard let streams = ids(device, selector: kAudioDevicePropertyStreams, scope: kAudioDevicePropertyScopeOutput), !streams.isEmpty else { return false }
-            return name(device).localizedCaseInsensitiveContains("jabra")
+            guard name(device).localizedCaseInsensitiveContains("jabra") else { return false }
+            guard let selected else { return true }
+            let match = HeadsetAudioRoute.matches(modelUID: string(device, selector: kAudioDevicePropertyModelUID), deviceUID: string(device, selector: kAudioDevicePropertyDeviceUID), selected: selected)
+            if match == nil { unmatchedIdentity = true }
+            return match == true
         })
+        if unmatchedIdentity && headsetIDs.isEmpty { return (.unknown, "Selected headset audio identity unavailable") }
         guard !headsetIDs.isEmpty else { return (.unknown, "No Jabra audio output connected") }
         var uncertain = false
         for process in processes {
@@ -63,8 +73,9 @@ final class AudioActivityMonitor {
         var value: UInt32 = 0; var size = UInt32(MemoryLayout<UInt32>.size)
         return AudioObjectGetPropertyData(object, &address, 0, nil, &size, &value) == noErr ? value : nil
     }
-    private static func name(_ object: AudioObjectID) -> String {
-        var address = AudioObjectPropertyAddress(mSelector: kAudioObjectPropertyName, mScope: kAudioObjectPropertyScopeGlobal, mElement: kAudioObjectPropertyElementMain)
+    private static func name(_ object: AudioObjectID) -> String { string(object, selector: kAudioObjectPropertyName) }
+    private static func string(_ object: AudioObjectID, selector: AudioObjectPropertySelector) -> String {
+        var address = AudioObjectPropertyAddress(mSelector: selector, mScope: kAudioObjectPropertyScopeGlobal, mElement: kAudioObjectPropertyElementMain)
         var value: Unmanaged<CFString>?; var size = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
         guard AudioObjectGetPropertyData(object, &address, 0, nil, &size, &value) == noErr else { return "" }
         return value?.takeRetainedValue() as String? ?? ""

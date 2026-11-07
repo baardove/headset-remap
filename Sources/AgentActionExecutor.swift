@@ -3,10 +3,12 @@ import ApplicationServices
 
 /// Runs a user-configured secondary action. No text or key event is sent until explicitly invoked.
 enum AgentActionExecutor {
-    static func run(_ action: AgentSecondaryAction, profile: ButtonProfile, completion: @escaping (String?) -> Void) {
+    static func run(_ action: AgentSecondaryAction, profile: ButtonProfile, isCurrent: @escaping () -> Bool = { true }, completion: @escaping (String?) -> Void) {
+        guard isCurrent() else { completion("Action canceled because the configuration changed."); return }
         if let error = action.validationError { completion(error); return }
         let perform = {
             DispatchQueue.main.asyncAfter(deadline: .now() + action.delay) {
+                guard isCurrent() else { completion("Action canceled because the configuration changed."); return }
                 switch action.kind {
                 case .url:
                     ButtonActionExecutor.run(ButtonSettings(action: .openURL, target: action.target), completion: completion)
