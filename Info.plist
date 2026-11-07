@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleExecutable</key>
+	<string>HeadsetRemap</string>
+	<key>CFBundleIdentifier</key>
+	<string>local.jabrateamsremap</string>
+	<key>CFBundleName</key>
+	<string>Headset Remap</string>
+	<key>CFBundleDisplayName</key>
+	<string>Headset Remap</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.1</string>
+	<key>CFBundleVersion</key>
+	<string>2</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>13.0</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>NSInputMonitoringUsageDescription</key>
+	<string>Headset Remap watches your Jabra headset buttons so they can trigger your configured agent or action.</string>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Headset Remap controls Apple Music playback when you press the headset's multifunction button.</string>
+</dict>
+</plist>
