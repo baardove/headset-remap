@@ -97,3 +97,9 @@ The native editor showed all nine actions with per-row inclusion checkboxes and 
 - The installed launcher detected Link 380, and selecting it persisted `9416:18030848` as the active button-input device. Input Monitoring was granted, and the adapter acknowledged the standalone handshake after restart.
 - At 11:36:44, the live log recorded a Link 380 Teams-button match, successful Codex activation, successful Voice Chat action, and completion of the automatic action chain. The user confirmed that Codex opened with Voice Chat.
 - Final checks: 204 portable mapping/profile/device-selection checks, 5 native Carbon registration/dispatch checks, and 5 voice-control label checks passed. Microphone-arm remapping remains unassigned because the idle capture did not establish a dependable arm-specific signal.
+
+## Installed fixes and compact launcher row
+
+The normal app bundle was replaced with the verified universal build containing the cancellation, audio-device scoping, physical-adapter debounce and attribution fixes. Binary hashes matched the tested build. Input Monitoring was granted and the Link 380 handshake completed. The native action editor no longer showed its keyboard-permission request after the separate Accessibility grant was renewed. Saved profiles and the selected Link 380 were unchanged; Codex remained selected with Voice Chat as its secondary action. No action shortcuts were fired during installation verification.
+
+The subsequent launcher layout change places the existing configuration gear immediately beside a two-thirds-width headset dropdown and removes the bottom gear. A separate, clearly titled native preview (with headset listening and global shortcuts disabled) verified alignment and gear navigation. This later layout change is source/preview verified and is not yet installed in the running normal app, to avoid another permission reset during the active call.

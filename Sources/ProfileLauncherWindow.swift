@@ -60,7 +60,13 @@ final class ProfileLauncherWindow: NSWindowController {
         fullWidth(header)
         let purpose = label("Choose which agent your headset uses, or open an app now.", size: 12, secondary: true)
         fullWidth(purpose)
-        fullWidth(HeadsetDevicePicker(devices: devices, selectedID: selectedDeviceID, onSelect: { [weak self] id in self?.onSelectDevice?(id) }))
+        let configure = NSButton(image: NSImage(systemSymbolName: "gearshape", accessibilityDescription: "Open configuration")!,
+                                 target: self, action: #selector(showSettings))
+        configure.bezelStyle = .rounded
+        configure.toolTip = "Open configuration"
+        configure.setAccessibilityLabel("Open configuration")
+        configure.widthAnchor.constraint(equalToConstant: 36).isActive = true
+        fullWidth(HeadsetDevicePicker(devices: devices, selectedID: selectedDeviceID, trailingAccessory: configure, onSelect: { [weak self] id in self?.onSelectDevice?(id) }))
         separator()
         for (index, profile) in library.enabledProfiles.enumerated() {
             let selected = profile.id == library.activeID
@@ -99,13 +105,6 @@ final class ProfileLauncherWindow: NSWindowController {
         let help = label("Headset button: \(headsetFlow)", size: 12, secondary: true)
         help.toolTip = headsetFlow
         fullWidth(help)
-        let configure = NSButton(image: NSImage(systemSymbolName: "gearshape", accessibilityDescription: "Open configuration")!,
-                                 target: self, action: #selector(showSettings))
-        configure.bezelStyle = .rounded
-        configure.toolTip = "Open configuration"
-        configure.setAccessibilityLabel("Open configuration")
-        configure.widthAnchor.constraint(equalToConstant: 36).isActive = true
-        stack.addArrangedSubview(configure)
         content.layoutSubtreeIfNeeded()
         let height = stack.fittingSize.height + 48
         let limit = (window?.screen ?? NSScreen.main)?.visibleFrame.height ?? 850

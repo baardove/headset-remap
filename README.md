@@ -34,7 +34,7 @@ Headset input and settings are handled locally. Configured actions can open exte
 
 ## Navigation
 
-The **Launcher** is for everyday use: select the agent the headset controls, open an app immediately with its play button, and open setup with the gear button at the bottom. Named actions remain available from the menu-bar popover. The current headset action sequence is shown below the agent list. Opening an app manually does not run its headset follow-up actions.
+The **Launcher** is for everyday use: select the agent the headset controls, open an app immediately with its play button, and open setup with the gear button beside the headset selector. Named actions remain available from the menu-bar popover. The current headset action sequence is shown below the agent list. Opening an app manually does not run its headset follow-up actions.
 
 **Configuration…** is the single entry point for setup:
 
