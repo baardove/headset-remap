@@ -1129,7 +1129,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func showAbout() {
-        let credits = NSMutableAttributedString(string: "Original project: Saif Hassan (saiftheboss7)\nBård Ove Myhr\nAI-assisted development: OpenAI Codex\nLicense: GNU AGPL v3\n\n")
+        let credits = NSMutableAttributedString(string: "Original project: Saif Hassan (saiftheboss7)\nAI-assisted development: OpenAI Codex\nLicense: GNU AGPL v3\n\n")
         credits.append(NSAttributedString(string: "Read the README on GitHub", attributes: [.link: URL(string: "https://github.com/baardove/headset-remap/blob/main/README.md")!]))
         NSApp.activate(ignoringOtherApps: true)
         NSApp.orderFrontStandardAboutPanel(options: [.applicationName: "Headset Remap", .credits: credits])

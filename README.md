@@ -23,7 +23,6 @@ These results apply to the tested devices and firmware, not the entire Evolve2 o
 Based on [Saif Hassan (saiftheboss7)'s original Jabra mute-button remapper](https://github.com/saiftheboss7/jabra-evolve-mute-button-remapper-macos).
 
 - Original creator: [Saif Hassan (saiftheboss7)](https://github.com/saiftheboss7)
-- **Bård Ove Myhr**
 - AI-assisted development: **OpenAI Codex**
 
 Distributed under the [GNU Affero General Public License v3](LICENSE). Upstream license and provenance are preserved. Right-click the menu-bar icon and choose **About Headset Remap** for credits and a link to this README.
