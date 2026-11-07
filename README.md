@@ -9,13 +9,22 @@ Turn your Jabra headset button into a launcher for your preferred assistant, wit
 3. Select your headset adapter in the Launcher, then open the gear to configure agents, primary actions and secondary actions.
 4. Learn the desired headset button and test your action. Start at Login is optional.
 
-Tested with Evolve2 65 / Link 380 and Evolve3 75 / Link 390. Other Jabra devices may work through button learning but are not verified. Microphone-arm remapping is experimental and currently unassigned. Selecting a headset here controls button input; it does not change macOS audio routing.
+### Verified compatibility
+
+| Headset and connection | Observed working behavior |
+| --- | --- |
+| Jabra Evolve2 65 via USB Link 380 | Captured Teams-button presses; opened Codex and ran the Voice Chat secondary action. User confirmed voice started. Standalone handshake acknowledged. |
+| Jabra Evolve3 75 via USB Link 390 | Repeated Teams-button events with Teams running; Codex activation with Teams closed using the standalone handshake. |
+
+These results apply to the tested devices and firmware, not the entire Evolve2 or Evolve3 families. Other Evolve2/Evolve3 models, other adapters, wired connections and direct Mac Bluetooth are **untested**. Button learning may support them, but compatibility is not established. Mute, volume and other buttons require their own mapping and verification; the Teams-button result does not verify every control. Microphone-arm remapping is experimental and currently unassigned. Selecting a headset here controls button input; it does not change macOS audio routing.
 
 ## Credits and license
 
 Based on [Saif Hassan (saiftheboss7)'s original Jabra mute-button remapper](https://github.com/saiftheboss7/jabra-evolve-mute-button-remapper-macos).
 
-Headset Remap development and adaptation: **Bård Ove Myhr**. AI-assisted development: **OpenAI Codex**.
+- Original creator: [Saif Hassan (saiftheboss7)](https://github.com/saiftheboss7)
+- **Bård Ove Myhr**
+- AI-assisted development: **OpenAI Codex**
 
 Distributed under the [GNU Affero General Public License v3](LICENSE). Upstream license and provenance are preserved. Right-click the menu-bar icon and choose **About Headset Remap** for credits and a link to this README.
 
