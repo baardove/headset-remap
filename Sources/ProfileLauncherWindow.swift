@@ -17,7 +17,7 @@ final class ProfileLauncherWindow: NSWindowController {
 
     init(library: ButtonProfileLibrary, connection: String, devices: [ConnectedHeadset], selectedDeviceID: String?) {
         self.library = library; self.connection = connection; self.devices = devices; self.selectedDeviceID = selectedDeviceID
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 530, height: 530),
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 430, height: 530),
                               styleMask: [.titled, .closable], backing: .buffered, defer: false)
         window.title = "Headset Remap"; window.isReleasedWhenClosed = false
         super.init(window: window)
@@ -108,8 +108,8 @@ final class ProfileLauncherWindow: NSWindowController {
         content.layoutSubtreeIfNeeded()
         let height = stack.fittingSize.height + 48
         let limit = (window?.screen ?? NSScreen.main)?.visibleFrame.height ?? 850
-        window?.setContentSize(NSSize(width: 530, height: min(height, limit - 100)))
-        content.setFrameSize(NSSize(width: 530, height: height))
+        window?.setContentSize(NSSize(width: 430, height: min(height, limit - 100)))
+        content.setFrameSize(NSSize(width: 430, height: height))
     }
     private func actionDescription(_ settings: ButtonSettings) -> String {
         switch settings.action {

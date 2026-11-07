@@ -60,7 +60,16 @@ final class ProfilePopover: NSViewController {
         let heading = NSStackView(views: [label("Headset Remap", size: 20, weight: .semibold), label(connection, secondary: true)])
         heading.orientation = .vertical; heading.alignment = .leading; heading.spacing = 3
         fullWidth(row([icon, heading]))
-        fullWidth(HeadsetDevicePicker(devices: devices, selectedID: selectedDeviceID, onSelect: { [weak self] id in self?.onSelectDevice?(id) }))
+        let launcher = NSButton(image: NSImage(systemSymbolName: "square.grid.2x2", accessibilityDescription: "Open launcher")!, target: self, action: #selector(showSettings))
+        let configuration = NSButton(image: NSImage(systemSymbolName: "gearshape", accessibilityDescription: "Open configuration")!, target: self, action: #selector(showConfiguration))
+        for (button, title) in [(launcher, "Open launcher"), (configuration, "Open configuration")] {
+            button.bezelStyle = .rounded
+            button.toolTip = title
+            button.setAccessibilityLabel(title)
+            button.widthAnchor.constraint(equalToConstant: 30).isActive = true
+        }
+        let navigation = row([launcher, configuration]); navigation.spacing = 6
+        fullWidth(HeadsetDevicePicker(devices: devices, selectedID: selectedDeviceID, trailingAccessory: navigation, onSelect: { [weak self] id in self?.onSelectDevice?(id) }))
         separator()
         stack.addArrangedSubview(label("HEADSET USES", size: 11, weight: .medium, secondary: true))
         for (index, profile) in library.enabledProfiles.enumerated() {
@@ -105,11 +114,7 @@ final class ProfilePopover: NSViewController {
             group.submenu = menu; otherActions.menu?.addItem(group)
         }
         run.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        fullWidth(row([run, otherActions])); separator()
-        let settings = NSButton(title: "Open launcher…", target: self, action: #selector(showSettings)); settings.bezelStyle = .inline
-        let advanced = NSButton(title: "Configuration…", target: self, action: #selector(showConfiguration)); advanced.bezelStyle = .inline
-        let spacer = NSView(); spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        fullWidth(row([settings, spacer, advanced]))
+        fullWidth(row([run, otherActions]))
         view.layoutSubtreeIfNeeded()
         preferredContentSize = NSSize(width: 334, height: stack.fittingSize.height + 24)
     }

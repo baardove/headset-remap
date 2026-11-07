@@ -728,6 +728,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var profilePopoverController: ProfilePopover?
     private let mic = MicMuteController()
     private let audioActivity = AudioActivityMonitor()
+    private let voiceMonitor = CodexVoiceMonitor()
     private let jabra = JabraButtonListener()
     private let hud = MuteHUD()
     private let agentHUD = AgentSwitchHUD()
@@ -801,6 +802,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         cancelPendingActions()
         hotkeys.clear()
         audioActivity.stop()
+        voiceMonitor.stop()
         jabra.stopCompatibility()
         jabra.releaseOffHook()
     }
@@ -872,6 +874,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         startListening()
+        voiceMonitor.onChange = { [weak self] state in
+            AppLog.log("VOICE state: \(state.rawValue)")
+            self?.refreshStatusIcon()
+        }
+        voiceMonitor.start()
         refreshUI()
         if CommandLine.arguments.contains("--agents") { openAgents() }
         if CommandLine.arguments.contains("--buttons") { openButtons() }
@@ -1077,25 +1084,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return image
     }
 
+    private func refreshStatusIcon() {
+        guard let button = statusItem.button else { return }
+        let muted = mic.isMuted
+        if voiceMonitor.state == .active {
+            button.image = CodexVoiceStatusIcon.activeImage()
+        } else if !buttonSettings.legacyControls {
+            let image = NSImage(systemSymbolName: "headphones", accessibilityDescription: "Headset Remap")
+            image?.isTemplate = true; button.image = image
+        } else if muted {
+            button.image = mutedStatusIcon()
+        } else {
+            let image = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "Microphone on")
+            image?.isTemplate = true; button.image = image
+        }
+        button.toolTip = "Profile: \(profileLibrary.active.name) · \(voiceMonitor.state.status) · \(muted ? "Microphone muted" : "Microphone on")"
+        button.setAccessibilityLabel("Headset Remap · " + voiceMonitor.state.status)
+    }
+
     private func refreshUI() {
         let muted = mic.isMuted
         rebuildProfileMenu()
         profilePopoverController?.update(library: profileLibrary, connection: headsetStatus, devices: jabra.detectedDevices, selectedDeviceID: jabra.inputSelection.deviceID)
         launcherWindow?.update(library: profileLibrary, connection: headsetStatus, devices: jabra.detectedDevices, selectedDeviceID: jabra.inputSelection.deviceID)
 
-        if let button = statusItem.button {
-            if !buttonSettings.legacyControls {
-                let image = NSImage(systemSymbolName: "headphones", accessibilityDescription: "Headset Remap")
-                image?.isTemplate = true; button.image = image
-            } else if muted {
-                button.image = mutedStatusIcon()
-            } else {
-                let image = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "Microphone on")
-                image?.isTemplate = true
-                button.image = image
-            }
-            button.toolTip = "Profile: \(profileLibrary.active.name) · \(muted ? "Microphone muted" : "Microphone on")"
-        }
+        refreshStatusIcon()
 
         deviceInfoItem.title = "Input: \(mic.deviceName())"
         if !inputMonitoringGranted {

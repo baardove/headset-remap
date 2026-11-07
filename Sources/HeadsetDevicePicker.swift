@@ -21,7 +21,8 @@ final class HeadsetDevicePicker: NSStackView {
             let compactWidth = picker.widthAnchor.constraint(equalTo: widthAnchor, multiplier: 2.0 / 3.0)
             compactWidth.priority = .defaultHigh
             compactWidth.isActive = true
-            picker.widthAnchor.constraint(greaterThanOrEqualToConstant: 220).isActive = true
+            picker.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+            picker.widthAnchor.constraint(greaterThanOrEqualToConstant: 160).isActive = true
             trailingAccessory.setContentHuggingPriority(.required, for: .horizontal)
             spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         } else {

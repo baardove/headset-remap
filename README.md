@@ -237,3 +237,9 @@ Delayed-action regression checks (fake launch boundary; no shortcuts or apps are
 swiftc Sources/ButtonMapping.swift Sources/ButtonProfiles.swift Sources/HeadsetButtons.swift Sources/HeadsetDevices.swift Sources/AudioActivityRules.swift Sources/AgentSecondaryAction.swift Sources/AgentActionPresets.swift Sources/AutomaticAgentActions.swift Sources/KeyboardShortcut.swift Sources/AgentActionExecutor.swift Tests/Actions/main.swift -o /tmp/jabra-action-tests
 /tmp/jabra-action-tests
 ```
+
+## Voice activity indicator
+
+The tray icon shows a light-orange badge with dark headphones while Codex exposes an active voice-session control. Headset Remap checks the app once per second, including sessions started or ended directly in Codex. It restores the normal icon when voice is inactive or its state cannot be read; the tooltip distinguishes inactive from unavailable. Detection requires Accessibility permission and currently recognizes English and Norwegian voice-control labels. Other agents do not yet supply this indicator.
+
+The launcher is 430 points wide. In both launcher and menu-bar popover, the headset dropdown occupies about two-thirds of its row. The popover places launcher and configuration icons beside it; the launcher places its configuration gear there. The old bottom navigation buttons are removed.
