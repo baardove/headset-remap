@@ -16,7 +16,7 @@ final class AgentActionsWindow: NSWindowController, NSTableViewDelegate, NSTable
     private let kind = NSPopUpButton()
     private let target = NSTextField()
     private let appKey = ShortcutRecorder()
-    private let accessibility = NSButton(title: "Allow keyboard actions…", target: nil, action: nil)
+    private let accessibility = NSButton(title: "Allow Accessibility actions…", target: nil, action: nil)
     private let globalKey = ShortcutRecorder()
     private let automatic = NSButton(checkboxWithTitle: "Include when running checked actions", target: nil, action: nil)
     private let first = NSButton(checkboxWithTitle: "Open the agent first", target: nil, action: nil)
@@ -143,7 +143,8 @@ final class AgentActionsWindow: NSWindowController, NSTableViewDelegate, NSTable
     private func refresh() {
         guard let draft = read() else { status.stringValue = "Add an action to configure it."; return }
         appKey.isHidden = draft.kind != .keyboard; target.isHidden = draft.kind == .keyboard
-        accessibility.isHidden = draft.kind != .keyboard || AXIsProcessTrusted()
+        target.placeholderString = draft.kind == .uiButton ? "Exact accessible button label, e.g. Start voice chat" : "URL or exact macOS Shortcut name"
+        accessibility.isHidden = (draft.kind != .keyboard && draft.kind != .uiButton) || AXIsProcessTrusted()
         save.isEnabled = dirty
         status.stringValue = draft.validationError ?? ""
     }
@@ -183,6 +184,9 @@ final class AgentActionsWindow: NSWindowController, NSTableViewDelegate, NSTable
         while actions.contains(where: { $0.name.caseInsensitiveCompare(label) == .orderedSame }) { label = "\(choice) \(suffix)"; suffix += 1 }
         var action = AgentSecondaryAction(name: label)
         action.runAfterHeadset = false
+        if choice == "Voice", profile.flatMap({ Bundle(path: $0.settings.target)?.bundleIdentifier }) == "com.anysphere.sand" {
+            action = AgentActionPresets.grokVoice(name: label)
+        }
         if let preset = AgentActionPresets.codex.first(where: { $0.name == choice }), profile.flatMap({ Bundle(path: $0.settings.target)?.bundleIdentifier }) == "com.openai.codex" {
             action.presetID = preset.id; action.key = KeyboardShortcut(keyCode: preset.key, modifiers: preset.modifiers)
             action.sendGlobally = preset.id == "voice.start"

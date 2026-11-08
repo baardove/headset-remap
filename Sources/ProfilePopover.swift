@@ -88,9 +88,11 @@ final class ProfilePopover: NSViewController {
             button.setContentHuggingPriority(.defaultLow, for: .horizontal)
             fullWidth(line)
         }
-        let description = label("Teams button → \(actionDescription(library.active.settings))", secondary: true)
+        let sequence = ([actionDescription(library.active.settings)] + library.active.automaticActions.map(\.name)).joined(separator: " → ")
+        let description = label("Teams / Run → \(sequence)", secondary: true)
+        description.toolTip = sequence
         fullWidth(description)
-        let run = NSButton(title: "Open \(library.active.name) now", target: self, action: #selector(runActive))
+        let run = NSButton(title: "Run \(library.active.name) now", target: self, action: #selector(runActive))
         run.bezelStyle = .rounded; run.bezelColor = .controlAccentColor
         run.font = .systemFont(ofSize: 14, weight: .semibold)
         run.toolTip = library.active.runShortcut.map { "Run directly: \($0.label)" }
@@ -102,7 +104,7 @@ final class ProfilePopover: NSViewController {
         for profile in library.enabledProfiles {
             let group = NSMenuItem(title: library.displayName(profile), action: nil, keyEquivalent: "")
             let menu = NSMenu()
-            let open = NSMenuItem(title: "Open", action: #selector(runOther(_:)), keyEquivalent: "")
+            let open = NSMenuItem(title: "Run configured actions", action: #selector(runOther(_:)), keyEquivalent: "")
             open.target = self; open.representedObject = profile.id.uuidString; menu.addItem(open)
             for action in profile.secondaryActions ?? [] {
                 let item = NSMenuItem(title: action.name + (action.isConfigured ? "" : " (set up)"), action: action.isConfigured ? #selector(runSecondary(_:)) : nil, keyEquivalent: "")

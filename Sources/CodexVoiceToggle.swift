@@ -1,17 +1,6 @@
 import Cocoa
 import ApplicationServices
 
-enum CodexVoiceState: String {
-    case active, inactive, unknown
-    var status: String {
-        switch self {
-        case .active: return "Codex voice active"
-        case .inactive: return "Codex voice inactive"
-        case .unknown: return "Codex voice state unavailable"
-        }
-    }
-}
-
 enum CodexVoiceToggle {
     static func isEndVoiceLabel(_ text: String) -> Bool {
         ["end voice chat", "stop voice chat", "end voice", "avslutt tale", "avslutt talesamtale"].contains(text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())
@@ -61,10 +50,14 @@ enum CodexVoiceToggle {
         return (classify(foundEnd: false, foundStart: foundStart, complete: complete), nil)
     }
     /// True means a detected active voice session was handled; skip the launch chain.
+    static func isConfigured(in profile: ButtonProfile) -> Bool {
+        profile.settings.action == .openApp &&
+            Bundle(path: profile.settings.target)?.bundleIdentifier == "com.openai.codex" &&
+            profile.automaticActions.contains { $0.kind == .keyboard && ($0.presetID == "voice.start" || $0.key == KeyboardShortcut(keyCode: 9, modifiers: 12) || $0.key == KeyboardShortcut(keyCode: 9, modifiers: 5)) }
+    }
+
     static func stopIfActive(profile: ButtonProfile) -> Bool {
-        guard profile.settings.action == .openApp,
-              Bundle(path: profile.settings.target)?.bundleIdentifier == "com.openai.codex",
-              profile.automaticActions.contains(where: { $0.kind == .keyboard && ($0.presetID == "voice.start" || $0.key == KeyboardShortcut(keyCode: 9, modifiers: 12) || $0.key == KeyboardShortcut(keyCode: 9, modifiers: 5)) }),
+        guard isConfigured(in: profile),
               let app = NSRunningApplication.runningApplications(withBundleIdentifier: "com.openai.codex").first,
               let control = probe(processID: app.processIdentifier).control else { return false }
         _ = app.activate(options: [])
@@ -97,6 +90,7 @@ final class CodexVoiceMonitor {
         sample()
     }
     func stop() { timer?.invalidate(); timer = nil; generation += 1; inFlight = false }
+    func refresh() { sample() }
     private func publish(_ value: CodexVoiceState) {
         guard value != state else { return }
         state = value; onChange?(value)
@@ -119,13 +113,13 @@ final class CodexVoiceMonitor {
 }
 
 enum CodexVoiceStatusIcon {
-    static func activeImage() -> NSImage {
+    static func activeImage(agent: String = "Codex") -> NSImage {
         let image = NSImage(size: NSSize(width: 22, height: 18), flipped: false) { rect in
             NSColor(calibratedRed: 1, green: 0.76, blue: 0.42, alpha: 1).setFill()
             NSBezierPath(roundedRect: rect, xRadius: 4, yRadius: 4).fill()
             let config = NSImage.SymbolConfiguration(pointSize: 12, weight: .semibold)
                 .applying(NSImage.SymbolConfiguration(paletteColors: [NSColor(calibratedWhite: 0.12, alpha: 1)]))
-            if let symbol = NSImage(systemSymbolName: "headphones", accessibilityDescription: "Codex voice active")?.withSymbolConfiguration(config) {
+            if let symbol = NSImage(systemSymbolName: "headphones", accessibilityDescription: "\(agent) voice active")?.withSymbolConfiguration(config) {
                 symbol.draw(at: NSPoint(x: (rect.width - symbol.size.width) / 2, y: (rect.height - symbol.size.height) / 2), from: .zero, operation: .sourceOver, fraction: 1)
             }
             return true

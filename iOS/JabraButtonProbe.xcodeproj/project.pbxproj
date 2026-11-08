@@ -1,0 +1,512 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0B42E55AFF53F0862FC243CD /* ProbeFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90A00636AABE7924173932C /* ProbeFlowTests.swift */; };
+		360A2943B7443F71330A112E /* ProbeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C015954996017FA481E2A13C /* ProbeView.swift */; };
+		53F3D72E0C84F8AB7C5B4C9B /* ProbeEvidenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00FEEFA843255C4CBFB141D3 /* ProbeEvidenceTests.swift */; };
+		67ABB0D82A0CFCC8EC4484AE /* HeadsetProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EC3F403212D1305D202B4C6 /* HeadsetProbe.swift */; };
+		6E2474D0A9BE31B7AC9EDB3D /* JabraButtonProbeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A899C84B8234A574D7B3EB1 /* JabraButtonProbeApp.swift */; };
+		A640FDDA1133285BA4F4767C /* TestTone.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8D56606D9374295BB165F7E /* TestTone.swift */; };
+		BFA0FCBE98DD07E2AAD14F68 /* ProbeEvidence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F0A8BDEF5DAC415E20A386A /* ProbeEvidence.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		0A675F7C01B2AE7139047CC0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 55AE0514D6A14EC8648E6EAE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C7897FD9B8F9EF51669C21A5;
+			remoteInfo = JabraButtonProbe;
+		};
+		5BF8B3AC53D5799C4A960E34 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 55AE0514D6A14EC8648E6EAE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C7897FD9B8F9EF51669C21A5;
+			remoteInfo = JabraButtonProbe;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		00FEEFA843255C4CBFB141D3 /* ProbeEvidenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProbeEvidenceTests.swift; sourceTree = "<group>"; };
+		2EC3F403212D1305D202B4C6 /* HeadsetProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadsetProbe.swift; sourceTree = "<group>"; };
+		5F0A8BDEF5DAC415E20A386A /* ProbeEvidence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProbeEvidence.swift; sourceTree = "<group>"; };
+		7A899C84B8234A574D7B3EB1 /* JabraButtonProbeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JabraButtonProbeApp.swift; sourceTree = "<group>"; };
+		888FC805F1E41807512C95A5 /* JabraButtonProbe.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = JabraButtonProbe.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C015954996017FA481E2A13C /* ProbeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProbeView.swift; sourceTree = "<group>"; };
+		D1A096C28C8844C3CFC09807 /* JabraButtonProbeUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = JabraButtonProbeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E8D56606D9374295BB165F7E /* TestTone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestTone.swift; sourceTree = "<group>"; };
+		E8FE80093AE8AFDC7717E29E /* JabraButtonProbeTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = JabraButtonProbeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E90A00636AABE7924173932C /* ProbeFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProbeFlowTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		5718FB3807698091C26BE2A1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				888FC805F1E41807512C95A5 /* JabraButtonProbe.app */,
+				E8FE80093AE8AFDC7717E29E /* JabraButtonProbeTests.xctest */,
+				D1A096C28C8844C3CFC09807 /* JabraButtonProbeUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		8F01F56A31162F40E0CC0720 /* JabraButtonProbe */ = {
+			isa = PBXGroup;
+			children = (
+				2EC3F403212D1305D202B4C6 /* HeadsetProbe.swift */,
+				7A899C84B8234A574D7B3EB1 /* JabraButtonProbeApp.swift */,
+				5F0A8BDEF5DAC415E20A386A /* ProbeEvidence.swift */,
+				C015954996017FA481E2A13C /* ProbeView.swift */,
+				E8D56606D9374295BB165F7E /* TestTone.swift */,
+			);
+			path = JabraButtonProbe;
+			sourceTree = "<group>";
+		};
+		9004DBB260ACD253E7EC9700 = {
+			isa = PBXGroup;
+			children = (
+				8F01F56A31162F40E0CC0720 /* JabraButtonProbe */,
+				987F672E9DEFF8A0DB978737 /* Tests */,
+				E696AB5062B8943FEB8988A2 /* UITests */,
+				5718FB3807698091C26BE2A1 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		987F672E9DEFF8A0DB978737 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				00FEEFA843255C4CBFB141D3 /* ProbeEvidenceTests.swift */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		E696AB5062B8943FEB8988A2 /* UITests */ = {
+			isa = PBXGroup;
+			children = (
+				E90A00636AABE7924173932C /* ProbeFlowTests.swift */,
+			);
+			path = UITests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2B19106284D926EF657EB2CF /* JabraButtonProbeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E488A3930C089CFF0494E179 /* Build configuration list for PBXNativeTarget "JabraButtonProbeTests" */;
+			buildPhases = (
+				6B0CA3705EBB47CC14B9884E /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F24BB17AFDCA1B7C5F419E1C /* PBXTargetDependency */,
+			);
+			name = JabraButtonProbeTests;
+			packageProductDependencies = (
+			);
+			productName = JabraButtonProbeTests;
+			productReference = E8FE80093AE8AFDC7717E29E /* JabraButtonProbeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		8A918E6DC0C229BE916CD3FD /* JabraButtonProbeUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 606818523924D44C0035D0EF /* Build configuration list for PBXNativeTarget "JabraButtonProbeUITests" */;
+			buildPhases = (
+				6664E1FE1CAC66B104BF6715 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3C9FE96D4B28E4555A6EC11A /* PBXTargetDependency */,
+			);
+			name = JabraButtonProbeUITests;
+			packageProductDependencies = (
+			);
+			productName = JabraButtonProbeUITests;
+			productReference = D1A096C28C8844C3CFC09807 /* JabraButtonProbeUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		C7897FD9B8F9EF51669C21A5 /* JabraButtonProbe */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2C4A1551203AE71FC61B1A40 /* Build configuration list for PBXNativeTarget "JabraButtonProbe" */;
+			buildPhases = (
+				9B6D0FE9880A3738E68C79E7 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = JabraButtonProbe;
+			packageProductDependencies = (
+			);
+			productName = JabraButtonProbe;
+			productReference = 888FC805F1E41807512C95A5 /* JabraButtonProbe.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		55AE0514D6A14EC8648E6EAE /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					8A918E6DC0C229BE916CD3FD = {
+						TestTargetID = C7897FD9B8F9EF51669C21A5;
+					};
+					C7897FD9B8F9EF51669C21A5 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 0D35D76DC15F9A05526A4E3B /* Build configuration list for PBXProject "JabraButtonProbe" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 9004DBB260ACD253E7EC9700;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 5718FB3807698091C26BE2A1 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C7897FD9B8F9EF51669C21A5 /* JabraButtonProbe */,
+				2B19106284D926EF657EB2CF /* JabraButtonProbeTests */,
+				8A918E6DC0C229BE916CD3FD /* JabraButtonProbeUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		6664E1FE1CAC66B104BF6715 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0B42E55AFF53F0862FC243CD /* ProbeFlowTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6B0CA3705EBB47CC14B9884E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				53F3D72E0C84F8AB7C5B4C9B /* ProbeEvidenceTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9B6D0FE9880A3738E68C79E7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				67ABB0D82A0CFCC8EC4484AE /* HeadsetProbe.swift in Sources */,
+				6E2474D0A9BE31B7AC9EDB3D /* JabraButtonProbeApp.swift in Sources */,
+				BFA0FCBE98DD07E2AAD14F68 /* ProbeEvidence.swift in Sources */,
+				360A2943B7443F71330A112E /* ProbeView.swift in Sources */,
+				A640FDDA1133285BA4F4767C /* TestTone.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		3C9FE96D4B28E4555A6EC11A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C7897FD9B8F9EF51669C21A5 /* JabraButtonProbe */;
+			targetProxy = 0A675F7C01B2AE7139047CC0 /* PBXContainerItemProxy */;
+		};
+		F24BB17AFDCA1B7C5F419E1C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C7897FD9B8F9EF51669C21A5 /* JabraButtonProbe */;
+			targetProxy = 5BF8B3AC53D5799C4A960E34 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		59A29C6D10CF1E86A7CCE22D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = local.jabrateamsremap.JabraButtonProbeTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/JabraButtonProbe.app/JabraButtonProbe";
+			};
+			name = Debug;
+		};
+		5DC6B748670692B2DDBCB041 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = local.jabrateamsremap.JabraButtonProbeTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/JabraButtonProbe.app/JabraButtonProbe";
+			};
+			name = Release;
+		};
+		630AE53BDDBA144C53A9DF75 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = local.jabrateamsremap.JabraButtonProbeUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = JabraButtonProbe;
+			};
+			name = Release;
+		};
+		82740D69BEE2FD594EAE1501 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		844980C6166712A34A9A10ED /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = local.jabrateamsremap.JabraButtonProbeUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = JabraButtonProbe;
+			};
+			name = Debug;
+		};
+		994EDBAA01568DFE3A29B403 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = local.jabrateamsremap.iosprobe;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BD1A73E23D6D8FFC0FFF0240 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = local.jabrateamsremap.iosprobe;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		D923C9500D6EDDC8D2254BCB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0D35D76DC15F9A05526A4E3B /* Build configuration list for PBXProject "JabraButtonProbe" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D923C9500D6EDDC8D2254BCB /* Debug */,
+				82740D69BEE2FD594EAE1501 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		2C4A1551203AE71FC61B1A40 /* Build configuration list for PBXNativeTarget "JabraButtonProbe" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				994EDBAA01568DFE3A29B403 /* Debug */,
+				BD1A73E23D6D8FFC0FFF0240 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		606818523924D44C0035D0EF /* Build configuration list for PBXNativeTarget "JabraButtonProbeUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				844980C6166712A34A9A10ED /* Debug */,
+				630AE53BDDBA144C53A9DF75 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E488A3930C089CFF0494E179 /* Build configuration list for PBXNativeTarget "JabraButtonProbeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				59A29C6D10CF1E86A7CCE22D /* Debug */,
+				5DC6B748670692B2DDBCB041 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 55AE0514D6A14EC8648E6EAE /* Project object */;
+}

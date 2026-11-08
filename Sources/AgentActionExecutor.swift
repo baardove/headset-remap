@@ -10,6 +10,12 @@ enum AgentActionExecutor {
             DispatchQueue.main.asyncAfter(deadline: .now() + action.delay) {
                 guard isCurrent() else { completion("Action canceled because the configuration changed."); return }
                 switch action.kind {
+                case .uiButton:
+                    guard profile.settings.action == .openApp,
+                          let bundleID = Bundle(path: profile.settings.target)?.bundleIdentifier else {
+                        completion("Button actions need a desktop app as the agent’s Open action."); return
+                    }
+                    AgentUIButton.run(label: action.target, bundleID: bundleID, isCurrent: isCurrent, completion: completion)
                 case .url:
                     ButtonActionExecutor.run(ButtonSettings(action: .openURL, target: action.target), completion: completion)
                 case .shortcut:

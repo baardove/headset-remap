@@ -266,6 +266,8 @@ final class JabraButtonListener {
     var onMappedButton: ((HeadsetButton) -> Void)?
     var onLearnedSignal: ((ButtonSignal) -> Void)?
     private var mappedButtons: [HeadsetButton] = []
+    private var buttonAvailability = ButtonAvailability.load()
+    private var headsetModels = HeadsetModelAssignments.load()
     var isLearning = false
     var legacyControls = false
     private var buttonRouter = HeadsetButtonRouter()
@@ -276,6 +278,8 @@ final class JabraButtonListener {
     private(set) var lastInputAt: Date?
 
     func updateSettings(_ settings: ButtonSettings, buttons: [HeadsetButton]? = nil) {
+        buttonAvailability = ButtonAvailability.load()
+        headsetModels = HeadsetModelAssignments.load()
         compatibility.setEnabled(settings.standaloneTeamsButton == true)
         mappedButtons = buttons ?? [HeadsetButton(id: "teams", name: "Teams", settings: settings)]
         buttonRouter.reset()
@@ -474,7 +478,9 @@ final class JabraButtonListener {
                                   deviceName: IOHIDDeviceGetProperty(device, kIOHIDProductKey as CFString) as? String)
         debugLog("VALUE \(signal.label) location=\(location)")
         guard inputSelection.accepts(identity(device)) else { return }
-        let matches = buttonRouter.consume(signal, device: location, buttons: mappedButtons, now: ProcessInfo.processInfo.systemUptime)
+        let activeModel = headsetModels.model(for: identity(device))
+        let availableButtons = mappedButtons.filter { buttonAvailability.isAvailable($0.id, model: activeModel) }
+        let matches = buttonRouter.consume(signal, device: location, buttons: availableButtons, now: ProcessInfo.processInfo.systemUptime)
         if isLearning { onLearnedSignal?(signal); return }
         for button in matches {
             if signal.usagePage == 0xFF99,
@@ -729,6 +735,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let mic = MicMuteController()
     private let audioActivity = AudioActivityMonitor()
     private let voiceMonitor = CodexVoiceMonitor()
+    private let grokVoiceMonitor = CodexVoiceMonitor(processID: {
+        NSRunningApplication.runningApplications(withBundleIdentifier: GrokVoiceSession.bundleID).first?.processIdentifier
+    }, readState: { GrokVoiceSession.probe(processID: $0) })
     private let jabra = JabraButtonListener()
     private let hud = MuteHUD()
     private let agentHUD = AgentSwitchHUD()
@@ -777,6 +786,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var settingsWindow: ButtonSettingsWindow?
     private var secondaryWindow: AgentActionsWindow?
     private var secondaryInFlight: Set<String> = []
+    private var profileRunsInFlight: Set<UUID> = []
     private var agentsWindow: AgentsWindow?
     private var buttonsWindow: ButtonsWindow?
     private var debugWindow: InputDebugWindow?
@@ -803,6 +813,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hotkeys.clear()
         audioActivity.stop()
         voiceMonitor.stop()
+        grokVoiceMonitor.stop()
         jabra.stopCompatibility()
         jabra.releaseOffHook()
     }
@@ -875,10 +886,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         startListening()
         voiceMonitor.onChange = { [weak self] state in
-            AppLog.log("VOICE state: \(state.rawValue)")
-            self?.refreshStatusIcon()
+            AppLog.log("VOICE Codex state: \(state.rawValue)")
+            self?.refreshUI()
+        }
+        grokVoiceMonitor.onChange = { [weak self] state in
+            AppLog.log("VOICE Grok Bot state: \(state.rawValue)")
+            self?.refreshUI()
         }
         voiceMonitor.start()
+        grokVoiceMonitor.start()
         refreshUI()
         if CommandLine.arguments.contains("--agents") { openAgents() }
         if CommandLine.arguments.contains("--buttons") { openButtons() }
@@ -1087,8 +1103,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func refreshStatusIcon() {
         guard let button = statusItem.button else { return }
         let muted = mic.isMuted
-        if voiceMonitor.state == .active {
-            button.image = CodexVoiceStatusIcon.activeImage()
+        let states = [("Codex", voiceMonitor.state), ("Grok Bot", grokVoiceMonitor.state)]
+        let active = states.filter { $0.1 == .active }.map { $0.0 }
+        let status = states.map { $0.1.status(for: $0.0) }.joined(separator: " · ")
+        if !active.isEmpty {
+            button.image = CodexVoiceStatusIcon.activeImage(agent: active.joined(separator: " / "))
         } else if !buttonSettings.legacyControls {
             let image = NSImage(systemSymbolName: "headphones", accessibilityDescription: "Headset Remap")
             image?.isTemplate = true; button.image = image
@@ -1098,15 +1117,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let image = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "Microphone on")
             image?.isTemplate = true; button.image = image
         }
-        button.toolTip = "Profile: \(profileLibrary.active.name) · \(voiceMonitor.state.status) · \(muted ? "Microphone muted" : "Microphone on")"
-        button.setAccessibilityLabel("Headset Remap · " + voiceMonitor.state.status)
+        button.toolTip = "Profile: \(profileLibrary.active.name) · \(status) · \(muted ? "Microphone muted" : "Microphone on")"
+        button.setAccessibilityLabel("Headset Remap · " + status)
     }
 
     private func refreshUI() {
         let muted = mic.isMuted
         rebuildProfileMenu()
         profilePopoverController?.update(library: profileLibrary, connection: headsetStatus, devices: jabra.detectedDevices, selectedDeviceID: jabra.inputSelection.deviceID)
-        launcherWindow?.update(library: profileLibrary, connection: headsetStatus, devices: jabra.detectedDevices, selectedDeviceID: jabra.inputSelection.deviceID)
+        launcherWindow?.update(library: profileLibrary, connection: headsetStatus, devices: jabra.detectedDevices, selectedDeviceID: jabra.inputSelection.deviceID, activeVoiceProfileIDs: activeVoiceProfileIDs)
 
         refreshStatusIcon()
 
@@ -1202,12 +1221,49 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     private func runProfile(_ id: UUID) {
         guard let profile = profileLibrary.enabledProfiles.first(where: { $0.id == id }) else { return }
-        // Direct actions intentionally do not switch the headset profile or inherit its focus delay.
-        AppLog.log("KEYBOARD/MENU action started: \(profile.name)")
-        ButtonActionExecutor.run(profile.settings) { error in
-            if let error { AppLog.log("KEYBOARD/MENU action failed: \(error)") }
-            else { AppLog.log("KEYBOARD/MENU action completed: \(profile.name)") }
+        guard !profileRunsInFlight.contains(id) else {
+            AppLog.log("RUN ignored repeated trigger: \(profile.name) is already running its actions")
+            return
         }
+        let isCurrent = actionGeneration.checkpoint()
+        if stopGrokVoiceIfActive(profile, isCurrent: isCurrent) { return }
+        if CodexVoiceToggle.stopIfActive(profile: profile) { voiceMonitor.refresh(); return }
+        // Direct runs preserve headset selection and omit its focus delay, but use
+        // the same configured primary/secondary sequence from every Run surface.
+        profileRunsInFlight.insert(id)
+        AppLog.log("RUN sequence started: \(profile.name)")
+        AutomaticAgentActions.run(afterPrimary: { complete in
+            ButtonActionExecutor.run(profile.settings, completion: complete)
+        }, actions: profile.automaticActions, isCurrent: isCurrent, perform: { [weak self] action, next in
+            guard let self else { next("Action sequence canceled."); return }
+            self.executeSecondary(action, profile: profile, isCurrent: isCurrent, completion: next)
+        }, completion: { [weak self] error in
+            self?.profileRunsInFlight.remove(id)
+            AppLog.log(error.map { "RUN sequence failed: \($0)" } ?? "RUN sequence completed: \(profile.name)")
+        })
+    }
+
+    private func stopGrokVoiceIfActive(_ profile: ButtonProfile, isCurrent: @escaping () -> Bool) -> Bool {
+        GrokVoiceSession.stopIfActive(profile: profile, isCurrent: isCurrent) { [weak self] error in
+            AppLog.log(error.map { "VOICE Grok Bot stop failed: \($0)" } ?? "VOICE Grok Bot stopped: active session")
+            self?.grokVoiceMonitor.refresh()
+        }
+    }
+
+    private var activeVoiceProfileIDs: Set<UUID> {
+        Set(profileLibrary.enabledProfiles.filter { profile in
+            (grokVoiceMonitor.state == .active && GrokVoiceSession.supportsToggle(profile)) ||
+            (voiceMonitor.state == .active && CodexVoiceToggle.isConfigured(in: profile))
+        }.map(\.id))
+    }
+
+    /// Explicit Stop must never fall back to starting a new session if the UI is stale.
+    private func stopProfileVoice(_ id: UUID) {
+        guard let profile = profileLibrary.enabledProfiles.first(where: { $0.id == id }) else { return }
+        if stopGrokVoiceIfActive(profile, isCurrent: actionGeneration.checkpoint()) { return }
+        if CodexVoiceToggle.stopIfActive(profile: profile) { voiceMonitor.refresh(); return }
+        grokVoiceMonitor.refresh(); voiceMonitor.refresh()
+        AppLog.log("VOICE stop ignored: no confirmed active voice for \(profile.name)")
     }
 
     private func runNamedAction(_ profileID: UUID, _ actionID: UUID, completion: @escaping (String?) -> Void = { _ in }) {
@@ -1257,10 +1313,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func openLauncher() {
         guard prepareNavigation() else { return }
         if launcherWindow == nil {
-            let controller = ProfileLauncherWindow(library: profileLibrary, connection: headsetStatus, devices: jabra.detectedDevices, selectedDeviceID: jabra.inputSelection.deviceID)
+            let controller = ProfileLauncherWindow(library: profileLibrary, connection: headsetStatus, devices: jabra.detectedDevices, selectedDeviceID: jabra.inputSelection.deviceID, activeVoiceProfileIDs: activeVoiceProfileIDs)
             controller.onSelectDevice = { [weak self] id in self?.jabra.selectDevice(id) }
         controller.onSelect = { [weak self] id in self?.selectProfile(id) }
             controller.onRun = { [weak self] id in self?.runProfile(id) }
+            controller.onStopVoice = { [weak self] id in self?.stopProfileVoice(id) }
             controller.onSettings = { [weak self] in self?.openConfiguration() }
             launcherWindow = controller
         }
@@ -1321,8 +1378,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard prepareNavigation() else { return }
         if buttonsWindow == nil {
             let controller = ButtonsWindow(library: profileLibrary)
+            controller.devicesProvider = { [weak self] in self?.jabra.detectedDevices ?? [] }
             controller.onBack = { [weak self] in self?.openConfiguration() }
             controller.onChange = { [weak self] library in self?.applyProfiles(library) }
+            controller.onAvailabilityChanged = { [weak self] in
+                guard let self else { return }
+                self.cancelPendingActions()
+                self.jabra.updateSettings(self.buttonSettings, buttons: self.profileLibrary.active.resolvedButtons)
+            }
             controller.audioStatusProvider = { [weak self] in self?.audioActivity.status ?? "" }
             controller.onDebug = { [weak self] in self?.openDebugInput() }
             controller.onLearningChanged = { [weak self] learning in
@@ -1383,8 +1446,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                   AppConfig.inputMode.dispatchesActions(isLearning: self.jabra.isLearning) else { return }
             self.pendingActions.removeValue(forKey: button.id)
             if let profile = self.profileLibrary.profiles.first(where: { $0.id == profileID }),
-               settings.action == profile.settings.action, settings.target == profile.settings.target,
-               CodexVoiceToggle.stopIfActive(profile: profile) { return }
+               settings.action == profile.settings.action, settings.target == profile.settings.target {
+                if self.stopGrokVoiceIfActive(profile, isCurrent: currentGeneration) { return }
+                if CodexVoiceToggle.stopIfActive(profile: profile) { return }
+            }
             AppLog.log("ACTION started: \(settings.action.title) [profile: \(self.profileLibrary.active.name), button: \(button.name)]")
             ButtonActionExecutor.run(settings) { error in
                 if let error { AppLog.log("ACTION failed: \(error)") }
@@ -1489,6 +1554,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 // MARK: - Entry point
+
+// Read-only diagnostic through the real app bundle's Accessibility identity.
+if let index = CommandLine.arguments.firstIndex(of: "--probe-ui-button"), CommandLine.arguments.count > index + 2 {
+    let bundleID = CommandLine.arguments[index + 1]
+    let label = CommandLine.arguments[index + 2]
+    guard let target = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first else {
+        print("Target app is not running."); exit(1)
+    }
+    let result = AgentUIButton.find(label: label, processID: target.processIdentifier)
+    if let error = result.error { print(error); exit(1) }
+    var actions: CFArray?
+    let supported = result.control.map { AXUIElementCopyActionNames($0, &actions) == .success && (actions as? [String])?.contains(kAXPressAction) == true } ?? false
+    print("Found one enabled button ‘\(label)’ in \(bundleID); AXPress supported=\(supported). No button pressed.")
+    exit(supported ? 0 : 1)
+}
 
 let app = NSApplication.shared
 let delegate = AppDelegate()

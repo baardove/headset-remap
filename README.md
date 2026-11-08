@@ -2,6 +2,10 @@
 
 Turn your Jabra headset button into a launcher for your preferred assistant, with optional follow-up actions such as Voice Chat. Native Swift menu-bar app for macOS 13 or later, supporting Apple Silicon and Intel.
 
+### iPhone feasibility test
+
+The separate [Jabra Button Probe for iOS](iOS/README.md) checks whether an iPhone exposes headset button signals through Bluetooth LE notifications or media commands. It includes timed comparisons and a shareable diagnostic report. This is a test app, not an iOS remapper; Teams-button compatibility still requires physical headset testing. Open `iOS/JabraButtonProbe.xcodeproj` in Xcode to build it.
+
 ## Get started
 
 1. Clone this repository and run `./build.sh` (requires Xcode Command Line Tools).
@@ -28,13 +32,17 @@ Based on [Saif Hassan (saiftheboss7)'s original Jabra mute-button remapper](http
 
 Distributed under the [GNU Affero General Public License v3](LICENSE). Upstream license and provenance are preserved. Right-click the menu-bar icon and choose **About Headset Remap** for credits and a link to this README.
 
+## Support development
+
+If you find Headset Remap useful, you can [buy me a coffee on Ko-fi](https://ko-fi.com/baardove) to support its development. Support is completely optional. Thank you!
+
 ## Privacy and permissions
 
 Headset input and settings are handled locally. Configured actions can open external apps, URLs or macOS Shortcuts. Diagnostic logs may contain device names, app targets and action names; review them before sharing. Ad-hoc development builds may require renewing macOS permissions after rebuilding.
 
 ## Navigation
 
-The **Launcher** is for everyday use: select the agent the headset controls, open an app immediately with its play button, and open setup with the gear button beside the headset selector. Named actions remain available from the menu-bar popover. The current headset action sequence is shown below the agent list. Opening an app manually does not run its headset follow-up actions.
+The **Launcher** is for everyday use: select the agent the headset controls, run its configured action sequence with Play, and open setup with the gear button beside the headset selector. Play runs the primary action first, then the selected secondary action or checked sequence in order. Named actions remain available from the menu-bar popover. The current headset action sequence is shown below the agent list.
 
 **Configuration…** is the single entry point for setup:
 
@@ -55,19 +63,21 @@ Open **Configuration… → Agents & actions** from the headset menu bar icon:
 - **ChatGPT**, another installed app, or any supported app/web URL.
 - **Run a macOS Shortcut** — enter its exact name to run a custom agent or voice workflow.
 
-Use **Test primary action** to verify the target, then **Save agent**. **Agent focus** defaults to a 0.5-second delay for the Teams button so the selected app activates after Teams processes its own button. Immediate and 1-second timings are also available. Teams may briefly appear; this shared-HID approach does not suppress its native response. Opening an agent activates its app; it does not automatically start recording or submit a prompt. A Shortcut can perform a supported voice workflow. Shortcut execution passes the name directly as an argument, without a shell.
+Use **Test primary action** to verify the target, then **Save agent**. **Agent focus** defaults to a 0.5-second delay for the Teams button so the selected app activates after Teams processes its own button. Immediate and 1-second timings are also available. Teams may briefly appear; this shared-HID approach does not suppress its native response. The primary Open step activates its app; configured secondary actions can then start voice or another workflow. A Shortcut can perform a supported voice workflow. Shortcut execution passes the name directly as an argument, without a shell.
 
 Settings are stored in the app's macOS preferences (`local.jabrateamsremap`). The original app has a separate identity. Start at Login is optional and disabled by default.
 
 ## Profiles and keyboard shortcuts
 
-Left-click the headset menu bar icon for a compact profile popover. **Open launcher…** shows enabled agents with direct Open buttons. **Configuration…** opens the setup hub. **Agents & actions** manages apps and their secondary actions; **Headset buttons** handles button learning and assignments. **Advanced settings** contains keyboard shortcuts and collapsed timing/compatibility options. Raw reports are available under **Advanced & troubleshooting → Input diagnostics…**. Right-click the icon for the utility menu.
+Left-click the headset menu bar icon for a compact profile popover. **Open launcher…** shows enabled agents with Play buttons for their configured action sequences. **Configuration…** opens the setup hub. **Agents & actions** manages apps and their secondary actions; **Headset buttons** handles button learning and assignments. **Advanced settings** contains keyboard shortcuts and collapsed timing/compatibility options. Raw reports are available under **Advanced & troubleshooting → Input diagnostics…**. Right-click the icon for the utility menu.
 
 The agent catalog keeps Siri fixed as agent 1 and preconfigures Codex, Grok Bot, Claude, Hermes, and OpenClaw. Installed desktop apps start enabled. OpenClaw starts disabled on this Mac until an app, URL or Shortcut target is configured. The current working headset mapping is preserved. Each profile preserves its button binding, target, timing, and compatibility settings. Use **Configuration → Agents & actions** to enable, disable, add, rename, or remove agents. The up/down chevrons on each row reorder it. Siri cannot be moved, disabled, renamed or removed. Only enabled agents appear in the launcher and receive a number and global shortcuts. Reordering or changing enabled agents regenerates the numbered shortcuts. Unsaved edits prompt before switching. The last profile cannot be deleted.
 
-Click a profile in the menu bar popover to switch the headset action. **Open … now** launches the selected action, and its dropdown offers every saved profile. Direct Run buttons in the launcher also launch without changing the selected headset profile. The app stays in the menu bar when its windows close; **Start at Login** is optional.
+Click a profile in the menu bar popover to switch the headset action. **Run … now**, launcher Play, the Run menu and Run keyboard shortcuts all execute the primary and configured secondary actions without changing the selected headset profile. They use each secondary action's delay, stop on errors or configuration changes, and ignore another Run on the same profile while its sequence is running. The dropdown also offers individual named actions. The app stays in the menu bar when its windows close; **Start at Login** is optional.
 
 Initial global shortcuts (⌃ Control, ⌥ Option, ⌘ Command):
+
+Run shortcuts execute the primary and configured secondary actions. Selection shortcuts only switch which agent the headset controls.
 
 | Profile | Run its action directly | Switch headset to profile |
 | --- | --- | --- |
@@ -88,11 +98,11 @@ Direct keyboard/menu actions work without a connected headset and use no Teams f
 
 ## Secondary agent actions
 
-Use **Configuration → Agents & actions → Edit secondary actions…**. **Open** stays the primary action. Choose **None**, an individual action, or **All checked secondary actions, in order** in the agent’s **Secondary action** dropdown. A headset press runs that selection after the primary action succeeds. For multiple actions, use the checkboxes and up/down controls to choose the steps and their order. Errors stop the chain. Add named choices such as **Voice**, **New chat**, or any custom workflow. Configure each with the target app's keyboard shortcut, a URL/deep link, or a macOS Shortcut. The current Codex presets use Control+Command+V for Voice Chat (when available) and Command+N for New chat, matching the supplied app shortcut screenshot. Other agent-specific integrations remain configurable.
+Use **Configuration → Agents & actions → Edit secondary actions…**. **Open** stays the primary action. Choose **None**, an individual action, or **All checked secondary actions, in order** in the agent’s **Secondary action** dropdown. A headset press runs that selection after the primary action succeeds. For multiple actions, use the checkboxes and up/down controls to choose the steps and their order. Errors stop the chain. Add named choices such as **Voice**, **New chat**, or any custom workflow. Configure each with the target app's keyboard shortcut, exact UI button label, a URL/deep link, or a macOS Shortcut. The current Codex presets use Control+Command+V for Voice Chat (when available) and Command+N for New chat, matching the supplied app shortcut screenshot. Other agent-specific integrations remain configurable.
 
 A secondary action can optionally open the agent first, wait a configurable 0–5 seconds, and have its own global shortcut. It can also be selected as an additional action in the **Buttons** screen. Incomplete actions are marked **needs setup** and cannot run. Disabling the parent agent also disables its action shortcuts.
 
-Keyboard actions require **Accessibility** permission for Headset Remap. They are sent only to the configured desktop app while it is frontmost; if focus changes, the action is canceled. URLs and macOS Shortcuts do not use simulated keypresses. Global trigger shortcuts are rejected as target keypresses to avoid loops.
+Keyboard and UI-button actions require **Accessibility** permission for Headset Remap. They target only the configured desktop app while it is frontmost; if focus changes, the action is canceled. URLs and macOS Shortcuts do not use simulated keypresses. Global trigger shortcuts are rejected as target keypresses to avoid loops.
 
 ## Multiple Jabra headsets
 
@@ -167,12 +177,12 @@ Requires Xcode Command Line Tools:
 open "build/Headset Remap.app" --args --settings
 ```
 
-Outputs a universal Apple Silicon/Intel app and `build/Headset-Remap.zip`. The app is locally signed, not notarized. If macOS requests it, use Finder's right-click → Open workflow. An ad-hoc signed rebuild may need a new Input Monitoring grant; the build script reuses a `JabraMicMute Signing` identity if one already exists. If the debug window reports permission missing even though the System Settings switch is on, quit the app, run `tccutil reset ListenEvent local.jabrateamsremap`, reopen this exact build, and grant access again. This resets only this app’s Input Monitoring permission.
+Outputs a universal Apple Silicon/Intel app and `build/Headset-Remap.zip`. The app is locally signed, not notarized. If macOS requests it, use Finder's right-click → Open workflow. The build script reuses `JabraMicMute Signing`, or the sole available Apple Development certificate, to preserve the app's permission identity between builds. Set `HEADSET_REMAP_SIGN_IDENTITY` to choose a certificate explicitly; otherwise ambiguous/missing certificates fall back to ad-hoc signing. Switching from ad-hoc to stable signing requires renewing this app's grants once. If the debug window reports permission missing even though the System Settings switch is on, quit the app, run `tccutil reset ListenEvent local.jabrateamsremap`, reopen this exact build, and grant access again. This resets only this app’s Input Monitoring permission.
 
 Tests for press/release behavior, debounce, device isolation, profile migration, shortcut conflicts, preferences, and target validation:
 
 ```sh
-swiftc Sources/ButtonMapping.swift Sources/ButtonProfiles.swift Sources/HeadsetButtons.swift Sources/HeadsetDevices.swift Sources/AudioActivityRules.swift Sources/AgentSecondaryAction.swift Sources/AgentActionPresets.swift Sources/AutomaticAgentActions.swift Sources/KeyboardShortcut.swift Sources/TeamsProtocol.swift Tests/main.swift -o /tmp/jabra-mapping-tests
+swiftc Sources/ButtonMapping.swift Sources/ButtonProfiles.swift Sources/HeadsetButtons.swift Sources/ButtonAvailability.swift Sources/HeadsetPhysicalControls.swift Sources/HeadsetDevices.swift Sources/AudioActivityRules.swift Sources/AgentSecondaryAction.swift Sources/AgentActionPresets.swift Sources/AutomaticAgentActions.swift Sources/KeyboardShortcut.swift Sources/TeamsProtocol.swift Tests/main.swift -o /tmp/jabra-mapping-tests
 /tmp/jabra-mapping-tests
 ```
 
@@ -194,6 +204,7 @@ swiftc Sources/ButtonMapping.swift Sources/ButtonProfiles.swift Sources/HeadsetB
 - `Sources/AgentSecondaryAction.swift`: named action configuration and references.
 - `Sources/AgentActionsWindow.swift`: per-agent secondary action editor.
 - `Sources/AgentActionExecutor.swift`: guarded secondary action execution.
+- `Sources/AgentUIButton.swift`: exact accessible-button matching and guarded presses.
 - `Sources/AgentSwitchHUD.swift`: non-activating agent selection feedback.
 - `Sources/AgentsWindow.swift`: dynamic agent catalog, enable switches and ordering.
 - `Sources/HeadsetButtons.swift`: per-button mappings and independent edge routing.
@@ -215,9 +226,19 @@ Upstream commit at download: `0dac819`. See [upstream documentation](https://git
 
 ### Select the automatic secondary action
 
-In **Agents & actions**, use the **Secondary action** dropdown to choose **None**, one configured secondary action, or **All checked secondary actions, in order**. Save the agent. The selection applies to physical headset activation; manual Open remains a plain launch.
+In **Agents & actions**, use the **Secondary action** dropdown to choose **None**, one configured secondary action, or **All checked secondary actions, in order**. Save the agent. The selection applies to physical headset activation, launcher Play, **Run … now**, the Run menu and Run keyboard shortcuts. **Test primary action** in settings still tests just the primary step.
 
-For Codex configurations that include Voice, the headset trigger first looks for the installed app's accessible End Voice/Stop voice chat control. When present, it presses that control and skips the launch/action chain. This detects the app's exposed voice state, not merely a remembered last click. Accessibility permission is required. Other agents do not yet have this Codex-specific voice-state detector. Grok Bot exposes a voice-call control, but no supported external voice-start command has been verified; no automatic Grok voice preset is included.
+For Codex configurations that include Voice, the headset trigger first looks for the installed app's accessible End Voice/Stop voice chat control. When present, it presses that control and skips the launch/action chain. This detects the app's exposed voice state, not merely a remembered last click. Accessibility permission is required.
+
+For **Grok Bot**, add **Voice** in **Edit secondary actions…**. The preset opens Grok, waits 0.6 seconds, locates its exact **Start voice chat** button through macOS Accessibility, and clicks the button's current center. Grok accepts `AXPress` without necessarily opening voice, so this integration uses a real pointer click. It checks the element under the pointer before clicking and confirms the voice panel's **Hang up** button before reporting success. While voice is active, another headset press, Play/Run, or the Voice action clicks **Hang up** and confirms the panel closed. For a headset/Run trigger this skips the primary and remaining actions. Only profiles with Grok Voice selected in their configured sequence get this toggle behavior. Select the Voice action in the agent's **Secondary action** dropdown and save. **Start voice input** is a separate dictation control.
+
+The **Press a button in the agent** action type also accepts another exact accessible button label. Other controls use `AXPress`. All button actions require the target app in front and one enabled matching button in its focused window. They cancel if inspection is incomplete, the label changes, or focus/configuration changes. The Grok click also cancels if the button is covered or has invalid bounds; no fixed screen coordinates are stored.
+
+Read-only button verification (requires Accessibility permission, does not open Grok or start voice):
+
+```sh
+"build/Headset Remap.app/Contents/MacOS/HeadsetRemap" --probe-ui-button com.anysphere.sand "Start voice chat"
+```
 
 ### Screenshot action presets and stacks
 
@@ -229,17 +250,25 @@ Choose **All checked secondary actions, in order** in the agent’s **Secondary 
 
 The button editor already supports learning mute, play/pause, volume up/down, call/answer, voice assistant, microphone arm and custom slots. A slot name does not establish hardware support: learn and test a separately reported HID input before assigning an action. Only the Teams-button behavior described above has been physically verified for these two headset/adapter pairs. The boom arm remains unassigned; it may share a mute input or expose no usable independent event.
 
+**Headset buttons** shows one exact-model diagram from Jabra's official overview illustrations. The catalog includes Evolve2 30, 30 SE, 40, 40 SE, 50, 55, 65, 65 Flex, 75, 85 and Buds, plus Evolve3 45, 65, 65 Flex, 75 and 85. Physical controls are numbered down the left side, then down the right; shared functions retain one number. The same numbers appear in the button list and debug window. The Evolve2 65 power/Bluetooth slider is at the bottom of its right earcup.
+
+The app selects a model automatically when the selected input device reports an identifiable headset product name. For this setup, Link 380 defaults to Evolve2 and Link 390 defaults to Evolve3, as requested; this selects a series and is not proof of an exact paired model. When exact identification is unavailable, **Evolve2 / Evolve3** tabs and model tabs let you choose explicitly. The choice is saved for that individual adapter and restored when switching adapters. Tabs fit on one row when space permits and wrap in narrower windows. Only the current model's diagram is shown. The drawings identify physical controls, not proven remapping support. Each drawing links to its source manual; the source manifest is in `assets/HeadsetDiagrams/sources.json`.
+
+Open **Button debug…** to check or uncheck available buttons independently for each exact model. Unchecking hides the button from that model's configuration list and disables its mapped actions across agents, preserving all learned inputs and saved actions. Rechecking restores them. The configuration list includes controls represented on that model; the microphone arm is shown only for models that have one. Unknown, unassigned adapters retain their existing behavior. **Live input…** opens the existing diagnostic tool for hardware testing. Model catalog coverage does not establish hardware remapping support for untested headsets.
+
 Learning additional inputs does not suppress the headset's native volume, call or media behavior. Legacy mute/Music control is opt-in. Selecting one adapter also scopes audio conditions to that adapter's CoreAudio identity; if it cannot be identified, audio-dependent actions stay inactive rather than using another headset's state.
 
 Delayed-action regression checks (fake launch boundary; no shortcuts or apps are fired):
 
 ```sh
-swiftc Sources/ButtonMapping.swift Sources/ButtonProfiles.swift Sources/HeadsetButtons.swift Sources/HeadsetDevices.swift Sources/AudioActivityRules.swift Sources/AgentSecondaryAction.swift Sources/AgentActionPresets.swift Sources/AutomaticAgentActions.swift Sources/KeyboardShortcut.swift Sources/AgentActionExecutor.swift Tests/Actions/main.swift -o /tmp/jabra-action-tests
+swiftc Sources/ButtonMapping.swift Sources/ButtonProfiles.swift Sources/HeadsetButtons.swift Sources/HeadsetDevices.swift Sources/AudioActivityRules.swift Sources/AgentSecondaryAction.swift Sources/AgentActionPresets.swift Sources/AutomaticAgentActions.swift Sources/KeyboardShortcut.swift Sources/VoiceSessionState.swift Sources/GrokVoiceSession.swift Sources/AgentUIButton.swift Sources/AgentActionExecutor.swift Tests/Actions/main.swift -o /tmp/jabra-action-tests
 /tmp/jabra-action-tests
 ```
 
 ## Voice activity indicator
 
-The tray icon shows a light-orange badge with dark headphones while Codex exposes an active voice-session control. Headset Remap checks the app once per second, including sessions started or ended directly in Codex. It restores the normal icon when voice is inactive or its state cannot be read; the tooltip distinguishes inactive from unavailable. Detection requires Accessibility permission and currently recognizes English and Norwegian voice-control labels. Other agents do not yet supply this indicator.
+The tray icon shows a light-orange badge with dark headphones while **Codex or Grok Bot** exposes an active voice-session control. Headset Remap checks both apps once per second, including sessions started or ended directly in either app and sessions in background windows. It restores the normal icon when neither app reports an active session; the tooltip names each app and distinguishes inactive from unavailable. Detection requires Accessibility permission. Codex recognizes English and Norwegian voice-control labels; Grok currently recognizes the observed English **Hang up** and composer controls. An incomplete or unknown UI never proves that voice is active.
+
+For a profile configured with Voice, the launcher changes its Play button to **Stop** and shows **Voice active** while that agent reports an active session. Stop checks the current session again and never starts a new one if the displayed state became stale. Grok is brought forward before stopping; the click waits briefly if the window is still moving into view. It retries only before a click has been sent, then confirms that the call ended.
 
 The launcher is 430 points wide. In both launcher and menu-bar popover, the headset dropdown occupies about two-thirds of its row. The popover places launcher and configuration icons beside it; the launcher places its configuration gear there. The old bottom navigation buttons are removed.

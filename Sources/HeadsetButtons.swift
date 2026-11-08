@@ -8,7 +8,8 @@ struct HeadsetButton: Codable, Equatable, Identifiable {
     static let defaults: [(String, String)] = [
         ("mute", "Microphone mute"), ("micArm", "Microphone arm"), ("play", "Play / pause"),
         ("volumeUp", "Volume up"), ("volumeDown", "Volume down"),
-        ("call", "Call / answer"), ("assistant", "Voice assistant")
+        ("call", "Call / answer"), ("assistant", "Voice assistant"), ("anc", "ANC / HearThrough"),
+        ("power", "Power / Bluetooth"), ("leftBud", "Left earbud"), ("rightBud", "Right earbud")
     ]
 }
 

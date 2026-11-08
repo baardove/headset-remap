@@ -17,6 +17,7 @@ if [ ! -f assets/AppIcon.icns ] || [ tools/makeicon.swift -nt assets/AppIcon.icn
   iconutil -c icns build/iconwork/AppIcon.iconset -o assets/AppIcon.icns
 fi
 cp assets/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
+cp -R assets/HeadsetDiagrams "$APP/Contents/Resources/HeadsetDiagrams"
 
 # Universal binary (Apple Silicon + Intel)
 swiftc -O -target arm64-apple-macos13.0 Sources/*.swift -o build/HeadsetRemap-arm64
@@ -25,14 +26,21 @@ lipo -create -output "$APP/Contents/MacOS/HeadsetRemap" \
   build/HeadsetRemap-arm64 build/HeadsetRemap-x86_64
 cp Info.plist "$APP/Contents/Info.plist"
 
-# Prefer the self-signed "JabraMicMute Signing" cert: it gives the app a
-# stable identity so the Input Monitoring grant survives rebuilds.
-# Ad-hoc fallback re-triggers the permission prompt on every rebuild.
-if security find-identity -v -p codesigning 2>/dev/null | grep -q "JabraMicMute Signing"; then
-  codesign --force --sign "JabraMicMute Signing" "$APP"
-else
-  codesign --force --sign - "$APP"
+# Stable signing prevents each rebuild from invalidating Accessibility/Input
+# Monitoring grants. An explicit override takes precedence. Otherwise use the
+# original local certificate, or an unambiguous Apple Development identity.
+SIGNING_IDENTITY="${HEADSET_REMAP_SIGN_IDENTITY:-}"
+if [ -z "$SIGNING_IDENTITY" ]; then
+  IDENTITIES="$(security find-identity -v -p codesigning 2>/dev/null || true)"
+  if printf '%s\n' "$IDENTITIES" | grep -q '"JabraMicMute Signing"'; then
+    SIGNING_IDENTITY="JabraMicMute Signing"
+  elif [ "$(printf '%s\n' "$IDENTITIES" | awk '/"Apple Development:/{n++} END {print n+0}')" = 1 ]; then
+    SIGNING_IDENTITY="$(printf '%s\n' "$IDENTITIES" | awk '/"Apple Development:/{print $2}')"
+  else
+    SIGNING_IDENTITY="-"
+  fi
 fi
+codesign --force --sign "$SIGNING_IDENTITY" "$APP"
 
 # Distributable zip (preserves the bundle structure and signature)
 ditto -c -k --keepParent "$APP" "build/Headset-Remap.zip"

@@ -67,7 +67,12 @@ final class AgentsWindow: NSWindowController, NSTableViewDataSource, NSTableView
         shortcuts.font = .systemFont(ofSize: 12); shortcuts.textColor = .secondaryLabelColor; shortcuts.preferredMaxLayoutWidth = 548
         let custom = ConfigurationDisclosure("Advanced: custom target", views: [action, target])
         appSummary.textColor = .secondaryLabelColor
-        let primary = ConfigurationSection("Primary action", views: [appSummary, choose, custom])
+        appSummary.lineBreakMode = .byTruncatingMiddle
+        appSummary.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        choose.setContentCompressionResistancePriority(.required, for: .horizontal)
+        let primaryRow = row([appSummary, choose])
+        primaryRow.widthAnchor.constraint(lessThanOrEqualToConstant: 548).isActive = true
+        let primary = ConfigurationSection("Primary action", views: [primaryRow, custom])
         let secondaryHint = NSTextField(wrappingLabelWithString: "Runs after the primary action when you press the headset button.")
         secondaryHint.textColor = .secondaryLabelColor
         secondaryHint.font = .systemFont(ofSize: 12)

@@ -52,11 +52,26 @@ final class ConfigurationNavigation: NSStackView {
         self.onBack = onBack
         super.init(frame: .zero)
         orientation = .horizontal; alignment = .centerY; spacing = 12
-        let back = NSButton(title: "‹ \(backTitle)", target: self, action: #selector(goBack))
-        back.bezelStyle = .inline
+        let back = NSButton(title: backTitle, target: self, action: #selector(goBack))
+        let chevronStyle = NSImage.SymbolConfiguration(pointSize: 20, weight: .semibold)
+            .applying(NSImage.SymbolConfiguration(paletteColors: [.white]))
+        back.image = NSImage(systemSymbolName: "chevron.left", accessibilityDescription: nil)?
+            .withSymbolConfiguration(chevronStyle)
+        back.image?.isTemplate = false
+        back.imagePosition = .imageLeading
+        back.bezelStyle = .rounded
+        back.bezelColor = .systemBlue
+        back.contentTintColor = .white
+        back.controlSize = .regular
+        back.font = .systemFont(ofSize: 16, weight: .medium)
+        back.attributedTitle = NSAttributedString(string: back.title, attributes: [
+            .font: NSFont.systemFont(ofSize: 16, weight: .medium),
+            .foregroundColor: NSColor.white
+        ])
+        back.heightAnchor.constraint(greaterThanOrEqualToConstant: 28).isActive = true
         back.setAccessibilityLabel("Back to \(backTitle)")
         let location = NSTextField(labelWithString: section)
-        location.font = .systemFont(ofSize: 12); location.textColor = .secondaryLabelColor
+        location.font = .systemFont(ofSize: 16); location.textColor = .secondaryLabelColor
         addArrangedSubview(back); addArrangedSubview(location)
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }

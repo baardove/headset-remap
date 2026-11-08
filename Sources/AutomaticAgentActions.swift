@@ -1,6 +1,24 @@
 import Foundation
 
 enum AutomaticAgentActions {
+    /// Run the chosen profile sequence from a direct launcher action. The primary
+    /// action must finish successfully before any configured secondary is invoked.
+    static func run(afterPrimary open: (@escaping (String?) -> Void) -> Void,
+                    actions: [AgentSecondaryAction],
+                    isCurrent: @escaping () -> Bool,
+                    perform: @escaping (AgentSecondaryAction, @escaping (String?) -> Void) -> Void,
+                    completion: @escaping (String?) -> Void) {
+        guard isCurrent() else { completion("Action sequence canceled because the configuration changed."); return }
+        open { error in
+            if let error { completion(error); return }
+            guard isCurrent() else { completion("Action sequence canceled because the configuration changed."); return }
+            run(actions, perform: { action, next in
+                guard isCurrent() else { next("Action sequence canceled because the configuration changed."); return }
+                perform(action, next)
+            }, completion: completion)
+        }
+    }
+
     static func run(_ actions: [AgentSecondaryAction], perform: @escaping (AgentSecondaryAction, @escaping (String?) -> Void) -> Void, completion: @escaping (String?) -> Void) {
         func step(_ index: Int) {
             guard index < actions.count else { completion(nil); return }

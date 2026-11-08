@@ -6,6 +6,7 @@ final class ProfileLauncherWindow: NSWindowController {
     var onSelect: ((UUID) -> Void)?
     var onSelectDevice: ((String?) -> Void)?
     var onRun: ((UUID) -> Void)?
+    var onStopVoice: ((UUID) -> Void)?
     var onSettings: (() -> Void)?
     private let stack = NSStackView()
     private let content = LauncherDocument()
@@ -14,9 +15,11 @@ final class ProfileLauncherWindow: NSWindowController {
     private var connection: String
     private var devices: [ConnectedHeadset]
     private var selectedDeviceID: String?
+    private var activeVoiceProfileIDs: Set<UUID>
 
-    init(library: ButtonProfileLibrary, connection: String, devices: [ConnectedHeadset], selectedDeviceID: String?) {
+    init(library: ButtonProfileLibrary, connection: String, devices: [ConnectedHeadset], selectedDeviceID: String?, activeVoiceProfileIDs: Set<UUID> = []) {
         self.library = library; self.connection = connection; self.devices = devices; self.selectedDeviceID = selectedDeviceID
+        self.activeVoiceProfileIDs = activeVoiceProfileIDs
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 430, height: 530),
                               styleMask: [.titled, .closable], backing: .buffered, defer: false)
         window.title = "Headset Remap"; window.isReleasedWhenClosed = false
@@ -36,8 +39,9 @@ final class ProfileLauncherWindow: NSWindowController {
         rebuild()
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    func update(library: ButtonProfileLibrary, connection: String, devices: [ConnectedHeadset], selectedDeviceID: String?) {
+    func update(library: ButtonProfileLibrary, connection: String, devices: [ConnectedHeadset], selectedDeviceID: String?, activeVoiceProfileIDs: Set<UUID> = []) {
         self.library = library; self.connection = connection; self.devices = devices; self.selectedDeviceID = selectedDeviceID
+        self.activeVoiceProfileIDs = activeVoiceProfileIDs
         rebuild()
     }
     func present() { showWindow(nil); NSApp.activate(ignoringOtherApps: true) }
@@ -58,7 +62,7 @@ final class ProfileLauncherWindow: NSWindowController {
         let header = NSStackView(views: [icon, label("Launcher", size: 25, weight: .semibold), label(connection, secondary: true)])
         header.orientation = .vertical; header.alignment = .centerX; header.spacing = 10
         fullWidth(header)
-        let purpose = label("Choose which agent your headset uses, or open an app now.", size: 12, secondary: true)
+        let purpose = label("Choose your headset agent, or run its configured actions with Play.", size: 12, secondary: true)
         fullWidth(purpose)
         let configure = NSButton(image: NSImage(systemSymbolName: "gearshape", accessibilityDescription: "Open configuration")!,
                                  target: self, action: #selector(showSettings))
@@ -70,6 +74,7 @@ final class ProfileLauncherWindow: NSWindowController {
         separator()
         for (index, profile) in library.enabledProfiles.enumerated() {
             let selected = profile.id == library.activeID
+            let voiceActive = activeVoiceProfileIDs.contains(profile.id)
             let select = NSButton(radioButtonWithTitle: "", target: self, action: #selector(selectProfile(_:)))
             select.tag = index; select.state = selected ? .on : .off
             select.setAccessibilityLabel("Use \(profile.name) for headset")
@@ -86,15 +91,20 @@ final class ProfileLauncherWindow: NSWindowController {
                 let badge = label("Selected", size: 10, weight: .medium)
                 badge.textColor = .controlAccentColor; titleRow.addArrangedSubview(badge)
             }
-            let details = label(actionDescription(profile.settings), secondary: true)
+            let steps = [actionDescription(profile.settings)] + profile.automaticActions.map(\.name)
+            let details = label(voiceActive ? "Voice active" : steps.joined(separator: " → "), secondary: true)
+            details.toolTip = steps.joined(separator: " → ")
             let names = NSStackView(views: [titleRow, details]); names.orientation = .vertical; names.alignment = .leading; names.spacing = 3
             names.widthAnchor.constraint(equalToConstant: 158).isActive = true
             details.widthAnchor.constraint(lessThanOrEqualToConstant: 158).isActive = true
             let key = label(profile.runShortcut?.label ?? "", size: 11, secondary: true)
             key.widthAnchor.constraint(equalToConstant: 52).isActive = true
-            let run = NSButton(image: NSImage(systemSymbolName: "play.fill", accessibilityDescription: "Run \(profile.name)")!, target: self, action: #selector(runProfile(_:)))
-            run.bezelStyle = .rounded; run.tag = index; run.toolTip = "Open \(profile.name) now. Does not run the headset’s follow-up actions."
-            run.setAccessibilityLabel("Run \(profile.name)")
+            let buttonLabel = voiceActive ? "Stop \(profile.name) voice" : "Run \(profile.name)"
+            let run = NSButton(image: NSImage(systemSymbolName: voiceActive ? "stop.fill" : "play.fill", accessibilityDescription: buttonLabel)!, target: self,
+                               action: voiceActive ? #selector(stopVoice(_:)) : #selector(runProfile(_:)))
+            run.bezelStyle = .rounded; run.tag = index
+            run.toolTip = voiceActive ? "Stop the active \(profile.name) voice session" : "Run \(profile.name): " + steps.joined(separator: " → ")
+            run.setAccessibilityLabel(buttonLabel)
             let row = NSStackView(views: [select, appIcon, names, key, run])
             row.orientation = .horizontal; row.alignment = .centerY; row.spacing = 10
             row.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
@@ -128,6 +138,10 @@ final class ProfileLauncherWindow: NSWindowController {
     @objc private func runProfile(_ sender: NSButton) {
         guard library.enabledProfiles.indices.contains(sender.tag) else { return }
         onRun?(library.enabledProfiles[sender.tag].id)
+    }
+    @objc private func stopVoice(_ sender: NSButton) {
+        guard library.enabledProfiles.indices.contains(sender.tag) else { return }
+        onStopVoice?(library.enabledProfiles[sender.tag].id)
     }
     @objc private func showSettings() { onSettings?() }
 }

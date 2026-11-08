@@ -1,6 +1,13 @@
 import Foundation
 
 enum AgentActionPresets {
+    static func grokVoice(name: String = "Voice Chat") -> AgentSecondaryAction {
+        var action = AgentSecondaryAction(name: name, kind: .uiButton, target: "Start voice chat")
+        action.presetID = "grok.voice.start"
+        action.delay = 0.6
+        action.runAfterHeadset = false
+        return action
+    }
     static let codex: [(id: String, name: String, key: UInt32, modifiers: UInt32)] = [
         ("dot.open", "Open your dot", 47, 1),
         ("chat.new", "New chat", 45, 1),

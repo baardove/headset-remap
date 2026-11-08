@@ -9,6 +9,8 @@ final class ButtonsWindow: NSWindowController, NSTableViewDataSource, NSTableVie
     var onLearningChanged: ((Bool) -> Void)?
     var audioStatusProvider: (() -> String)?
     var onDebug: (() -> Void)?
+    var onAvailabilityChanged: (() -> Void)?
+    var devicesProvider: (() -> [ConnectedHeadset])?
     private var library: ButtonProfileLibrary
     private var profileID: UUID
     private var selectedID = "teams"
@@ -43,8 +45,16 @@ final class ButtonsWindow: NSWindowController, NSTableViewDataSource, NSTableVie
     private let status = NSTextField(wrappingLabelWithString: "")
     private var chooseAppButton: NSButton!
     private let remove = NSButton(title: "Remove custom", target: nil, action: nil)
+    private let modelPicker = HeadsetModelTabs(model: .evolve3, maxRowWidth: 852)
+    private let detectionStatus = NSTextField(wrappingLabelWithString: "Choose the headset model below.")
+    private var model: HeadsetDiagramModel = .evolve3
+    private var availability = ButtonAvailability.load()
+    private var buttonDebug: ButtonDebugWindow?
+    private let emptyState = NSTextField(wrappingLabelWithString: "All buttons are hidden for this model. Open Button debug to restore them.")
+    private var buttonEditor: ConfigurationSection!
+    private let diagram = HeadsetDiagramCard(model: .evolve3)
     private var currentProfile: ButtonProfile { library.profiles.first { $0.id == profileID } ?? library.active }
-    private var buttons: [HeadsetButton] { currentProfile.resolvedButtons }
+    private var buttons: [HeadsetButton] { model.ordered(currentProfile.resolvedButtons).filter { availability.isAvailable($0.id, model: model) } }
 
     init(library: ButtonProfileLibrary) {
         self.library = library; profileID = library.activeID
@@ -56,9 +66,12 @@ final class ButtonsWindow: NSWindowController, NSTableViewDataSource, NSTableVie
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     deinit { timer?.invalidate(); audioTimer?.invalidate(); NotificationCenter.default.removeObserver(self) }
     func present() {
+        refreshDetection()
         showWindow(nil); NSApp.activate(ignoringOtherApps: true)
         audioStatus.stringValue = audioStatusProvider?() ?? "Checking headset audio…"
-        if audioTimer == nil { audioTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in self?.audioStatus.stringValue = self?.audioStatusProvider?() ?? "" } }
+        if audioTimer == nil { audioTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            self?.audioStatus.stringValue = self?.audioStatusProvider?() ?? ""; self?.refreshDetection()
+        } }
     }
     func update(_ next: ButtonProfileLibrary) {
         let dirty = hasChanges
@@ -85,7 +98,15 @@ final class ButtonsWindow: NSWindowController, NSTableViewDataSource, NSTableVie
         list.widthAnchor.constraint(equalToConstant: 235).isActive = true; list.heightAnchor.constraint(equalToConstant: 376).isActive = true
         let add = NSButton(title: "Add custom…", target: self, action: #selector(addCustom))
         remove.target = self; remove.action = #selector(removeCustom)
-        let left = ConfigurationSection("Physical buttons", views: [list, row([add, remove])])
+        modelPicker.onSelect = { [weak self] in self?.chooseModel($0) }
+        detectionStatus.font = .systemFont(ofSize: 12); detectionStatus.textColor = .secondaryLabelColor
+        detectionStatus.preferredMaxLayoutWidth = 852
+        detectionStatus.widthAnchor.constraint(equalToConstant: 852).isActive = true
+        let availabilityButton = NSButton(title: "Button debug…", target: self, action: #selector(openButtonDebug))
+        emptyState.preferredMaxLayoutWidth = 235; emptyState.textColor = .secondaryLabelColor
+        emptyState.widthAnchor.constraint(equalToConstant: 235).isActive = true
+        let left = ConfigurationSection("Physical buttons", views: [list, emptyState, row([add, remove])])
+        left.detachesHiddenViews = true
         name.font = .systemFont(ofSize: 19, weight: .semibold); name.delegate = self
         learn.target = self; learn.action = #selector(toggleLearning)
         removeInput.target = self; removeInput.action = #selector(clearInput)
@@ -114,6 +135,7 @@ final class ButtonsWindow: NSWindowController, NSTableViewDataSource, NSTableVie
         let right = ConfigurationSection("Button configuration", views: [name, inputState, inputHelp, row([savedInputs, removeInput]), learn, signalPicker,
             NSTextField(labelWithString: "Additional action"), row([action, presets]), selectedAgentAction, target, choose,
             advanced, row([save, test])])
+        buttonEditor = right
         right.detachesHiddenViews = true
         right.widthAnchor.constraint(equalToConstant: 575).isActive = true
         for field in [name, target, signalPicker, details] { field.widthAnchor.constraint(equalToConstant: 575).isActive = true }
@@ -128,7 +150,12 @@ final class ButtonsWindow: NSWindowController, NSTableViewDataSource, NSTableVie
         let diagnostics = ConfigurationDisclosure("Diagnostics", views: [foot, details, debug])
         diagnostics.onToggle = { [weak self] in self?.refresh() }
         let navigation = ConfigurationNavigation(section: "Headset buttons", onBack: { [weak self] in self?.onBack?() })
-        for item in [navigation, row([heading, NSTextField(labelWithString: "For agent"), profiles]), explanation, body, diagnostics, status] { root.addArrangedSubview(item) }
+        let diagramHelp = NSTextField(wrappingLabelWithString: "Physical controls are numbered down the left side, then down the right. Shared functions have the same number. Use Button debug to hide or restore controls for this exact model.")
+        diagramHelp.font = .systemFont(ofSize: 12); diagramHelp.textColor = .secondaryLabelColor
+        diagramHelp.preferredMaxLayoutWidth = 852; diagramHelp.widthAnchor.constraint(equalToConstant: 852).isActive = true
+        let placement = ConfigurationSection("Button placement", views: [detectionStatus, modelPicker, diagram, diagramHelp, availabilityButton])
+        placement.detachesHiddenViews = true
+        for item in [navigation, row([heading, NSTextField(labelWithString: "For agent"), profiles]), explanation, placement, body, diagnostics, status] { root.addArrangedSubview(item) }
         root.orientation = .vertical; root.alignment = .leading; root.spacing = 16; root.translatesAutoresizingMaskIntoConstraints = false
         outerScroll.frame = window!.contentView!.bounds; outerScroll.autoresizingMask = [.width, .height]
         outerScroll.hasVerticalScroller = true; outerScroll.scrollerStyle = .overlay; outerScroll.drawsBackground = false
@@ -156,7 +183,8 @@ final class ButtonsWindow: NSWindowController, NSTableViewDataSource, NSTableVie
     func numberOfRows(in tableView: NSTableView) -> Int { buttons.count }
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
         let button = buttons[row]
-        let title = NSTextField(labelWithString: button.name); title.font = .systemFont(ofSize: 13, weight: .medium)
+        let prefix = model.number(for: button.id).map { "\($0). " } ?? ""
+        let title = NSTextField(labelWithString: prefix + button.name); title.font = .systemFont(ofSize: 13, weight: .medium)
         let description: String
         if button.settings.signal == nil { description = "Input not learned" }
         else if button.settings.action == .none { description = "Learned · no extra action" }
@@ -167,7 +195,12 @@ final class ButtonsWindow: NSWindowController, NSTableViewDataSource, NSTableVie
     }
     private func loadSelection() {
         loading = true
-        draft = buttons.first { $0.id == selectedID } ?? buttons[0]; selectedID = draft.id
+        draft = buttons.first { $0.id == selectedID } ?? buttons.first
+        table.reloadData()
+        buttonEditor.isHidden = draft == nil; emptyState.isHidden = draft != nil
+        remove.isEnabled = draft?.id.hasPrefix("custom-") == true
+        guard let draft else { loading = false; refresh(); return }
+        selectedID = draft.id
         let fixed = currentProfile.builtInSiri == true && selectedID == "teams"
         for control in [action as NSControl, presets, target, chooseAppButton!] { control.isEnabled = !fixed }
         name.stringValue = draft.name; name.isEditable = selectedID.hasPrefix("custom-")
@@ -192,8 +225,10 @@ final class ButtonsWindow: NSWindowController, NSTableViewDataSource, NSTableVie
         if chosen != result.settings.effectiveFocusTiming { result.settings.focusTiming = chosen }
         return result
     }
-    private var hasChanges: Bool { draft != nil && readDraft() != buttons.first { $0.id == selectedID } }
+    private var hasChanges: Bool { draft != nil && readDraft() != currentProfile.resolvedButtons.first { $0.id == selectedID } }
     private func refresh() {
+        diagram.update(model: model, selectedID: draft?.id ?? "", hiddenIDs: availability.hiddenIDs(for: model))
+        if draft == nil { resizeToContent(); return }
         inputHelp.isHidden = selectedID != "micArm"
         let learned = draft.settings.learnedSignals
         inputState.stringValue = learned.isEmpty ? "Input not learned" : "Learned for \(learned.count) headset / adapter\(learned.count == 1 ? "" : "s")"
@@ -213,6 +248,9 @@ final class ButtonsWindow: NSWindowController, NSTableViewDataSource, NSTableVie
         target.isHidden = reference; selectedAgentAction.isHidden = !reference
         selectedAgentAction.stringValue = agentChoices.first(where: { $0.1.action == .agentAction && $0.1.target == draft.settings.target })?.0 ?? "Choose an agent action from the menu."
         save.isEnabled = hasChanges && !learning
+        resizeToContent()
+    }
+    private func resizeToContent() {
         contentDocument.layoutSubtreeIfNeeded()
         let height = root.fittingSize.height + 48
         let maximum = (window?.screen ?? NSScreen.main)?.visibleFrame.height ?? 1000
@@ -221,6 +259,49 @@ final class ButtonsWindow: NSWindowController, NSTableViewDataSource, NSTableVie
         contentDocument.setFrameSize(NSSize(width: 900, height: height))
     }
     @objc private func formChanged() { if !loading { refresh() } }
+    private func chooseModel(_ chosen: HeadsetDiagramModel) {
+        guard canLeave() else { modelPicker.update(model); return }
+        model = chosen
+        let devices = devicesProvider?() ?? []
+        let id = HeadsetInputSelection.load().deviceID ?? (devices.count == 1 ? devices[0].id : nil)
+        if let id {
+            do { var assignments = HeadsetModelAssignments.load(); assignments.set(chosen, for: id); try assignments.save(); onAvailabilityChanged?() }
+            catch { status.stringValue = error.localizedDescription }
+        }
+        loadSelection(); refreshDetection()
+    }
+    private func refreshDetection() {
+        let devices = devicesProvider?() ?? []
+        let id = HeadsetInputSelection.load().deviceID
+        let device = id.flatMap { id in devices.first { $0.id == id } } ?? (id == nil && devices.count == 1 ? devices[0] : nil)
+        let detected = device.flatMap { HeadsetDiagramModel.detect(name: $0.name) }
+        let assigned = device.flatMap { HeadsetModelAssignments.load().assignedModel(for: $0.id) }
+        let fallback = device.flatMap { HeadsetDiagramModel.defaultForDevice($0) }
+        modelPicker.isHidden = detected != nil
+        if let detected { detectionStatus.stringValue = "Detected \(detected.title)." }
+        else if let device {
+            detectionStatus.stringValue = assigned.map { "\(device.name) does not report the headset model. Your selection: \($0.title)." }
+                ?? fallback.map { "\(device.name) selects \($0.family). Exact model is not reported; choose its model below." }
+                ?? "\(device.name) does not report the headset model. Choose its model below."
+        } else { detectionStatus.stringValue = "No single headset model was detected. Choose a model to view its controls." }
+        if let next = detected ?? assigned ?? fallback, next != model, !hasChanges { model = next; modelPicker.update(next); loadSelection() }
+    }
+    @objc private func openButtonDebug() {
+        guard canLeave() else { return }
+        if buttonDebug == nil {
+            let controller = ButtonDebugWindow(model: model, buttons: currentProfile.resolvedButtons)
+            controller.canChange = { [weak self] in self?.canLeave() ?? false }
+            controller.onChange = { [weak self] _ in
+                guard let self else { return }
+                self.availability = ButtonAvailability.load()
+                self.loadSelection(); self.onAvailabilityChanged?()
+            }
+            controller.onLiveInput = { [weak self] in self?.onDebug?() }
+            buttonDebug = controller
+        }
+        buttonDebug?.update(model: model, buttons: currentProfile.resolvedButtons)
+        buttonDebug?.present()
+    }
     func controlTextDidChange(_ obj: Notification) { refresh() }
     func prepareForExternalEdit() -> Bool { canLeave() }
     private func canLeave() -> Bool {

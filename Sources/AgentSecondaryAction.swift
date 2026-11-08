@@ -14,9 +14,9 @@ struct AgentActionReference: Equatable {
 
 struct AgentSecondaryAction: Codable, Equatable, Identifiable {
     enum Kind: String, Codable, CaseIterable {
-        case keyboard, url, shortcut
+        case keyboard, url, shortcut, uiButton
         var title: String {
-            switch self { case .keyboard: return "Press a shortcut in the agent"; case .url: return "Open a URL"; case .shortcut: return "Run a macOS Shortcut" }
+            switch self { case .keyboard: return "Press a shortcut in the agent"; case .url: return "Open a URL"; case .shortcut: return "Run a macOS Shortcut"; case .uiButton: return "Press a button in the agent" }
         }
     }
     var id = UUID()
@@ -36,6 +36,8 @@ struct AgentSecondaryAction: Codable, Equatable, Identifiable {
         guard delay.isFinite, (0...5).contains(delay) else { return "Use a delay between 0 and 5 seconds." }
         if let hotkey, !hotkey.isValid { return "Choose a valid global shortcut." }
         switch kind {
+        case .uiButton:
+            guard !target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, target.count <= 160 else { return "Enter the exact accessible button label (1–160 characters)." }
         case .keyboard:
             guard let key, key.isValid else { return "Record the shortcut used inside this agent." }
         case .url, .shortcut:
